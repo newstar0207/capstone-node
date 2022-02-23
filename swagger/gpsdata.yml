@@ -1,0 +1,41 @@
+components:
+  schemas:
+    GPSdatas:
+      type: object
+      properties:
+        trackId:
+          type: string
+          example: 621334fc7d7f986fa9bd3425
+        coordinates:
+          type: array
+          example: [[1, 1], [2, 2]]
+        userId:
+          type: integer
+          example: 1
+        speed:
+          type: array
+          example: [1, 2]
+        time:
+          type: array
+          example: [1, 2]
+        distance:
+          type: array
+          example: [1, 2]
+        event:
+          type: string
+          example: bike
+        altitude:
+          type: array
+          example: [1, 2]
+        totalTime:
+          type: integer
+          example: 1000
+      required:
+        - coordinates
+        - userId
+        - speed
+        - time
+        - destance
+        - event
+        - altitude
+        - totalTime

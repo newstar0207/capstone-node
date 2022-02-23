@@ -1,0 +1,41 @@
+components:
+  schemas:
+    Track:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 621334fc7d7f986fa9bd3425
+        name:
+          type: string
+          example: 영진전문대 500m
+        distance:
+          type: number
+          example: 500
+        userId:
+          type: number
+          example: 1
+        description:
+          type: string
+          example: 산책하기 좋아요
+        event:
+          type: string
+          example: bike
+        checkPoint:
+          type: array
+          example: [[1, 1], [2, 2]]
+        coordinates:
+          type: array
+          example: [[1, 1], [2, 2]]
+        altitude:
+          type: array
+          example: [1, 2]
+      required:
+        - name
+        - distance
+        - userId
+        - description
+        - event
+        - checkPoint
+        - coordinates
+        - altitude

@@ -1,15 +1,41 @@
 const express = require('express');
 const Track = require('../schemas/track');
 const { validationResult } = require('express-validator');
-// const { checkGpsCoordinates } = require('../checkGpsCoordinates');
 
 const router = express.Router();
 
-// 특정 트랙 가져오기 
-router.get('/:id/track', async (req, res, next) => {
+/**
+ * @swagger
+ * tags:
+ *  - name: tracks
+ *    description: 트랙에 관련한 API
+ */
+
+/**
+ * @swagger
+ * /api/{id}/track:
+ *    get:
+ *      summary: Return Track.
+ *      description: 특정한 트랙을 리턴함.
+ *      tags:
+ *        - tracks
+ *      parameters:
+ *        - in: path
+ *          name: trackId
+ *          required: true
+ *      responses:
+ *        '200':
+ *          description: OK
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Track'
+ */
+
+router.get('/:trackId/track', async (req, res, next) => {
 
   try {
-    const track = await Track.findById(req.params.id);
+    const track = await Track.findById(req.params.trackId);
     if (track) {
       console.log('GET track...', track);
       res.status(200).json(track);
@@ -20,6 +46,27 @@ router.get('/:id/track', async (req, res, next) => {
     res.status(500).json({ message: err.message });
   }  
 });
+
+/**
+ * @swagger
+ * /api/track:
+ *    post:
+ *      summary: Add Track 
+ *      description: 새로운 트랙 생성 
+ *      tags: 
+ *        - tracks
+ *      requestBody:
+ *        requried: true
+ *        content:
+ *          application/x-www-form-urlencoded:
+ *            schema:
+ *              $ref: '#/components/schemas/Track'
+ *      responses:
+ *        '201':
+ *          description: OK
+ *        '200':
+ *          description: track exist  
+ */ 
 
 
 // 트랙 생성하기

@@ -1,9 +1,34 @@
 const express = require('express');
 const GPSdata = require('../schemas/gpsData');
 
+/**
+ * @swagger
+ * tags:
+ *   - name: GPSdatas
+ *     description: GPSdata 관리에 관한 API    
+ */
+
 const router = express.Router();
 
-// gps기록 저장.
+
+/**
+ *  @swagger
+ *  /api/gpsdata:
+ *    post: 
+ *      summary: Add 새로운 GPSdata 저장
+ *      tags:
+ *        - GPSdatas
+ *      requestBody:
+ *        requried: true
+ *        content:
+ *          application/x-www-form-urlencoded:
+ *            schema:
+ *              $ref: '#/components/schemas/GPSdatas'
+ *      responses:
+ *        '201':
+ *          description: OK 
+ */
+
 router.post('/gpsdata', async (req, res, next) => {
 
     // TODO: validation 넣기 
@@ -21,51 +46,28 @@ router.post('/gpsdata', async (req, res, next) => {
             altitude: JSON.parse(req.body.altitude),
         });
         console.log(gpsData);
-        res.status(201).json({message: 'gpsData를 저장합니다.'});
+        res.status(201).json({gpsId: gpsData.id ,message: 'gpsData를 저장합니다.'});
     } catch (err) {
         console.error(err);
         next(err);
     }
 });
 
-// SNS: 자신의 gps기록만 보기, 자신의 gps기록 가져오기.
-router.get('/:userId/gpsdata', async (req, res, next) => {
-
-    // TODO: 필요한 정보만 가져오기
-
-    try {
-        const GPSdatas = GPSdata.find({userId: req.params.userId}).sort({createdAt: 'asc'})
-        GPSdatas.exec((err, result) =>{
-            if (err) {
-                console.error(err);
-                next(err);
-            } else {
-                if (result.length == 0) {
-                    res.status(200).json({message: 'gpsData가 존재하지 않습니다.'})
-                } 
-                res.status(200).json(result);
-            }
-        })  
-       
-    } catch (err) {
-        console.error(err);
-        next(err);
-    }
-})
-
-// SNS: 자신이 팔로우한 사람, 자신의 gps데이터 (전체)
-router.get('/gpsdata', async (req, res, next) => {
-    try { // sort createdAt
-        // TODO: 팔로우 한 사람의 경로만 가져오는거 효율적으로 짜는 법 생각하기.
-        const follow = req.body.follow; // follow 한 userId 가져옴
-
-    } catch (err) {
-        console.log(err);
-        next(err);
-    }
-})
-
-// 전체 트랙별 랭킹 (시간 순)
+/**
+ *  @swagger
+ *  /api/{trackId}/score:
+ *    get:
+ *      summary: Return 선택한 트랙의 GPSdata를 시간순으로 정렬함
+ *      tags:
+ *        - GPSdatas
+ *      responses:
+ *        '200':
+ *          description: 검색한 트랙의 결과를 가져옴
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/GPSdatas'  
+ */
 router.get('/:trackId/score', async (req, res, next) => {
     try {
         const GPSdatas = GPSdata.find({trackId: req.params.trackId}).sort({totalTime: 'asc'})
@@ -86,10 +88,33 @@ router.get('/:trackId/score', async (req, res, next) => {
     }
 })
 
-// 팔로우 한 사람만 나오는 트랙별 랭킹 (시간 순)
+// TODO: 팔로우 한 사람만 나오는 트랙별 랭킹 (시간 순)
 
-// 트랙 별 랭킹에서 페이스 메이커를 골랐을 경우의 gpsdata 리턴
-router.get('/:gpsdataId/pacemaker', async (req, res ,next) => {
+
+
+/** 
+ *  @swagger
+ *  /api/{gpsdataId}:
+ *    get:
+ *      summary: Return 특정한 GPSdata를 리턴
+ *      tags:
+ *        - GPSdatas
+ *      parameters:
+ *        - in: path
+ *          name: gpsdataId
+ *          required: true
+ *          schema:
+ *            type: string
+ *      responses:
+ *        '200':
+ *          description: OK
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/GPSdatas'
+ */
+
+router.get('/:gpsdataId', async (req, res ,next) => {
     try {
         const paceMaker = GPSdata.findById(req.params.gpsdataId);
         paceMaker.exec((err, result) => {
@@ -109,7 +134,24 @@ router.get('/:gpsdataId/pacemaker', async (req, res ,next) => {
     }
 })
 
-// gpsdata 삭제
+/**
+ *  @swagger
+ *  /api/{gpsdataId}:
+ *    delete:
+ *      summary: Delete 특정한 GPSdata를 삭제함
+ *      tags: 
+ *        - GPSdatas
+ *      parameters:
+ *        - in: path
+ *          name: gpsdataId
+ *          required: true
+ *          schema:
+ *            type: string
+ *      responses:
+ *        '200':
+ *          description: OK
+ */
+
 router.delete('/:gpsdataId', async (req, res, next) => {
     try { 
         await GPSdata.deleteOne({ id: req.params.gpsdataId});

@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 
-// 트랙 데이터
-
 const lineStringSchema = new mongoose.Schema({
    type: {
        type: String,
@@ -62,5 +60,6 @@ const trackSchema = new Schema({
         required: true, 
     }
 });
+
 
 module.exports = mongoose.model('Track', trackSchema);
