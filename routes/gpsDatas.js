@@ -18,15 +18,11 @@ const router = express.Router();
  *      summary: Add 새로운 GPSdata 저장
  *      tags:
  *        - GPSdatas
- *      requestBody:
- *        requried: true
- *        content:
- *          application/x-www-form-urlencoded:
- *            schema:
- *              $ref: '#/components/schemas/GPSdatas'
  *      responses:
  *        '201':
  *          description: OK 
+ *          schema: 
+ *            $ref: '#/components/schemas/GPSdatas'
  */
 
 router.post('/gpsdata', async (req, res, next) => {
@@ -58,6 +54,9 @@ router.post('/gpsdata', async (req, res, next) => {
  *  /api/{trackId}/score:
  *    get:
  *      summary: Return 선택한 트랙의 GPSdata를 시간순으로 정렬함
+ *      parameters:
+ *        - in: query
+ *          name: trackId
  *      tags:
  *        - GPSdatas
  *      responses:
@@ -67,6 +66,7 @@ router.post('/gpsdata', async (req, res, next) => {
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/GPSdatas'  
+ *              
  */
 router.get('/:trackId/score', async (req, res, next) => {
     try {
@@ -103,8 +103,6 @@ router.get('/:trackId/score', async (req, res, next) => {
  *        - in: path
  *          name: gpsdataId
  *          required: true
- *          schema:
- *            type: string
  *      responses:
  *        '200':
  *          description: OK
@@ -112,6 +110,9 @@ router.get('/:trackId/score', async (req, res, next) => {
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/GPSdatas'
+ *              example:
+ *                  id: 10
+ *                
  */
 
 router.get('/:gpsdataId', async (req, res ,next) => {
@@ -145,8 +146,6 @@ router.get('/:gpsdataId', async (req, res ,next) => {
  *        - in: path
  *          name: gpsdataId
  *          required: true
- *          schema:
- *            type: string
  *      responses:
  *        '200':
  *          description: OK

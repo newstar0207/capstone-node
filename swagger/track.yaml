@@ -1,7 +1,6 @@
 components:
   schemas:
     Track:
-      type: object
       properties:
         id:
           type: string

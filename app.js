@@ -3,7 +3,7 @@ const path = require('path');
 const morgan = require('morgan');
 const nunjucks = require('nunjucks');
 const dotenv = require('dotenv');
-const { swaggerUi, specs } = require('./swagger/swagger');
+const { swaggerUi, specs } = require('./swagger/Swagger');
 
 dotenv.config();
 

@@ -1,0 +1,84 @@
+components:
+  schemas:
+    GPSdatas:
+      properties:
+        trackId:
+          type: string
+          nullable: true
+          example: 621334fc7d7f986fa9bd3425
+        coordinates:
+          type: array
+          example: [[1, 1], [2, 2]]
+        userId:
+          type: integer
+          example: 1
+        speed:
+          type: array
+          example: [1, 2]
+        time:
+          type: array
+          example: [1, 2]
+        distance:
+          type: array
+          example: [1, 2]
+        event:
+          type: string
+          example: r
+        altitude:
+          type: array
+          example: [1, 2]
+        totalTime:
+          type: integer
+          example: 300
+      required:
+        - coordinates
+        - userId
+        - speed
+        - time
+        - distance
+        - event
+        - altitude
+        - totalTime
+  requestBodies:
+    GPSdatas:
+      content:
+        application/json:
+          schema:
+            properties:
+              trackId:
+                type: string
+                nullable: true
+                example: 621334fc7d7f986fa9bd3425
+              coordinates:
+                type: array
+                example: [[1, 1], [2, 2]]
+              userId:
+                type: integer
+                example: 1
+              speed:
+                type: array
+                example: [1, 2]
+              time:
+                type: array
+                example: [1, 2]
+              distance:
+                type: array
+                example: [1, 2]
+              event:
+                type: string
+                example: r
+              altitude:
+                type: array
+                example: [1, 2]
+              totalTime:
+                type: integer
+                example: 300
+            required:
+              - coordinates
+              - userId
+              - speed
+              - time
+              - distance
+              - event
+              - altitude
+              - totalTime
