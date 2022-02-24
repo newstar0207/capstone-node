@@ -13,7 +13,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/{id}/track:
+ * /api/{trackId}/track:
  *    get:
  *      summary: Return Track.
  *      description: 특정한 트랙을 리턴함.
@@ -23,6 +23,7 @@ const router = express.Router();
  *        - in: path
  *          name: trackId
  *          required: true
+ *          example: 621390d75463764b87a94f1d
  *      responses:
  *        '200':
  *          description: OK
@@ -50,26 +51,28 @@ router.get('/:trackId/track', async (req, res, next) => {
 /**
  * @swagger
  * /api/track:
- *    post:
- *      summary: Add Track 
- *      description: 새로운 트랙 생성 
- *      tags: 
- *        - tracks
- *      requestBody:
- *        requried: true
- *        content:
- *          application/x-www-form-urlencoded:
- *            schema:
- *              $ref: '#/components/schemas/Track'
- *      responses:
- *        '201':
- *          description: OK
- *        '200':
- *          description: track exist  
+ *   post:
+ *     summary: Add Track 
+ *     description: 새로운 트랙 생성 
+ *     tags: 
+ *       - tracks
+ *     requestBody:
+ *       requried: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Track'
+ *     responses:
+ *       '201':
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/responses/Track'
+ *       '200':
+ *         description: track exist  
  */ 
 
-
-// 트랙 생성하기
 router.post('/track', async (req, res, next) => {
 
   // TODO: 트랙 생성하면서 자신의 gpsdata를 이용해 트랙기록 저장

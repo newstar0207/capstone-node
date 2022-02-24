@@ -4,6 +4,7 @@ const swaggereJsdoc = require('swagger-jsdoc');
 const options = {
     swaggerDefinition: {
         components: {},
+        openapi: "3.0.0",
         info: {
             title: 'mongoDB API',
             version: '1.0.0', 

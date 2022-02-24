@@ -39,46 +39,24 @@ components:
         - event
         - altitude
         - totalTime
-  requestBodies:
-    GPSdatas:
-      content:
-        application/json:
-          schema:
-            properties:
-              trackId:
-                type: string
-                nullable: true
-                example: 621334fc7d7f986fa9bd3425
-              coordinates:
-                type: array
-                example: [[1, 1], [2, 2]]
-              userId:
-                type: integer
-                example: 1
-              speed:
-                type: array
-                example: [1, 2]
-              time:
-                type: array
-                example: [1, 2]
-              distance:
-                type: array
-                example: [1, 2]
-              event:
-                type: string
-                example: r
-              altitude:
-                type: array
-                example: [1, 2]
-              totalTime:
-                type: integer
-                example: 300
-            required:
-              - coordinates
-              - userId
-              - speed
-              - time
-              - distance
-              - event
-              - altitude
-              - totalTime
+  responses:
+    GPSdata:
+      properties:
+        id:
+          type: string
+          example: 621334fc7d7f986fa9bd3425
+    GPSdataRank:
+      properties:
+        _id:
+          type: string
+          example: 621334fc7d7f986fa9bd3425
+          description: GPSdata Id
+        userId:
+          type: integer
+          example: 1
+        totalTime:
+          type: integer
+          example: 500
+        createdAt:
+          type: string
+          example: 2022-02-21T06:45:11.705Z
