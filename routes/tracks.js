@@ -154,31 +154,61 @@ router.post('/track', async (req, res, next) => {
     });  
   }
 });
+
+/**
+ * @swagger
+ * /api/search:
+ *   get:
+ *     summary: 구간 탐색
+ *     description: 구간에 맞게 특정 범위 안에 있는 트랙 중 길이가 긴 순으로 10개 까지 리턴
+ *     tags:
+ *       - tracks
+ *     parameters:
+ *       - name: bounds
+ *         in: query
+ *         required: true
+ *         description: query string
+ *         example: ?bounds=128.22&bounds=33.33&bounds=128.33&bounds=33.33
+ *       - name: zoom
+ *         in : query
+ *         required: true
+ *         description: query string
+ *         example: ?zoom=16
+ *     responses:
+ *       '200':
+ *         description: 구간 리턴
+ *         content:
+ *           application/json:
+ *             schema: 
+ *               $ref: '#/components/schemas/Track'
+ */
   
 
 // 여러경로 가져오기 (반경계산)
 router.get('/search', async (req, res, next) => {
-  // TODO: 로그인
+  const bounds = req.query.bounds;
+  const zoom = req.query.zoom;
 
-  let zoom = req.body.query;
-  if (zoom == 0) zoom = 1;
-
-  await Track.find({
-    gps: {
-      $near: { // Returns geospatial objects in proximity to a point
-        $maxDistance: 1000 / zoom, // 미터
-        $geometry: { // 검색 기준 좌표
-          type: "Point",
-          coordinates: [parseFloat(req.query.lng), parseFloat(req.query.lat) ]
-        }
+  console.log(JSON.stringify(bounds));
+  const tracks = Track.find({
+    "gps.coordinates": {
+      $geoWithin: { // 왼쪽 밑, 오른쪽 위 좌표 사이의 저장된 문서를 가져옴
+        $box: [[parseFloat(bounds[0]),parseFloat(bounds[1])], [parseFloat(bounds[2]),parseFloat(bounds[3])]]
       }
     }
-  }).find((error, results) => {
-    if (error) console.log(error);
-    console.log(JSON.stringify(results, 0, 2));
-    res.status(200).json(JSON.stringify(results, 0, 2));
-  });  
-});
+  })    
+  tracks.sort({distance: -1}).limit(10).exec((error, result) => { // 길이를 기준으로 내림차순이며, 10개로 개수를 제한함.
+    if(error) {
+      console.log(error);
+      next(error);
+    }
+    if(result.length == 0) {
+      return res.status(200).json({result: result, message: '해당 구간에 존재하는 트랙이 없습니다.', zoom: zoom})
+    }
+    res.status(200).json({result: result, message: 'ok', zoom: zoom});
+  })
+})
+
 
 module.exports = router;
 
