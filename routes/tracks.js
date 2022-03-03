@@ -202,7 +202,11 @@ router.get("/track/search", async (req, res, next) => {
           zoom: zoom,
         });
       }
-      res.status(200).json({ result: result, message: "ok", zoom: zoom });
+
+      res
+        .writeHead({ "Access-Control-Allow-Origin": "*" })
+        .status(200)
+        .json({ result: result, message: "ok", zoom: zoom });
     });
 });
 
