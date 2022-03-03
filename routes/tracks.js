@@ -115,7 +115,7 @@ router.post("/track", async (req, res, next) => {
   const createTrack = async (trackInfo, storeGPSdate) => {
     return await Track.create({
       name: trackInfo.name, // 트랙 이름
-      distance: parseFloat(JOSN.parse(trackInfo.distance)), // 트랙 전체 거리
+      distance: parseFloat(trackInfo.distance), // 트랙 전체 거리
       userId: parseInt(trackInfo.userId), // 트랙 저장한 유저 아이디
       description: trackInfo.description, // 트랙 설명
       event: trackInfo.event, // 종목
