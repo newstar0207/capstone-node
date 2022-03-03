@@ -1,6 +1,7 @@
 const express = require("express");
 const Track = require("../schemas/track");
 const { validationResult } = require("express-validator");
+const res = require("express/lib/response");
 
 const router = express.Router();
 
@@ -35,6 +36,10 @@ const router = express.Router();
  *       '200':
  *         description: track exist
  */
+router.get("/test", async (req, res, next) => {
+  console.log(req);
+  return res.status(200);
+});
 
 router.post("/track", async (req, res, next) => {
   // TODO: 트랙 생성하면서 자신의 gpsdata를 이용해 트랙기록 저장
@@ -203,10 +208,8 @@ router.get("/track/search", async (req, res, next) => {
         });
       }
 
-      res
-        .writeHead({ "Access-Control-Allow-Origin": "*" })
-        .status(200)
-        .json({ result: result, message: "ok", zoom: zoom });
+      // .writeHead({ "Access-Control-Allow-Origin": "*" })
+      res.status(200).json({ result: result, message: "ok", zoom: zoom });
     });
 });
 

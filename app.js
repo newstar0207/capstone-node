@@ -12,6 +12,7 @@ dotenv.config();
 const connect = require("./schemas");
 const trackRouter = require("./routes/tracks");
 const gpsRouter = require("./routes/gpsDatas");
+const res = require("express/lib/response");
 
 const app = express();
 
@@ -39,6 +40,10 @@ app.use(
 );
 app.use("/api", trackRouter);
 app.use("/api", gpsRouter);
+
+app.get("/", function (req, res) {
+  res.send("hello world");
+});
 
 app.use((req, res, next) => {
   const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
