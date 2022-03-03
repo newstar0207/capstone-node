@@ -13,42 +13,6 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/track/{trackId}:
- *    get:
- *      summary: Return 특정한 트랙을 리턴함.
- *      description: 특정한 트랙을 리턴함.
- *      tags:
- *        - tracks
- *      parameters:
- *        - in: path
- *          name: trackId
- *          required: true
- *          example: 621390d75463764b87a94f1d
- *      responses:
- *        '200':
- *          description: OK
- *          content:
- *            application/json:
- *              schema:
- *                $ref: '#/components/schemas/Track'
- */
-
-router.get("/track/:trackId", async (req, res, next) => {
-  try {
-    const track = await Track.findById(req.params.trackId);
-    if (track) {
-      console.log("GET track...", track);
-      res.status(200).json(track);
-    } else {
-      res.status(200).json({ message: "track이 존재하지 않습니다." });
-    }
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-/**
- * @swagger
  * /api/track:
  *   post:
  *     summary: Add 트랙을 저장하고 ID 를 리턴함
@@ -204,6 +168,7 @@ router.get("/track/search", async (req, res, next) => {
   const event = req.query.event;
 
   console.log(JSON.stringify(bounds));
+
   const tracks = Track.find({
     "gps.coordinates": {
       $geoWithin: {
@@ -234,6 +199,42 @@ router.get("/track/search", async (req, res, next) => {
       }
       res.status(200).json({ result: result, message: "ok", zoom: zoom });
     });
+});
+
+/**
+ * @swagger
+ * /api/track/{trackId}:
+ *    get:
+ *      summary: Return 특정한 트랙을 리턴함.
+ *      description: 특정한 트랙을 리턴함.
+ *      tags:
+ *        - tracks
+ *      parameters:
+ *        - in: path
+ *          name: trackId
+ *          required: true
+ *          example: 621390d75463764b87a94f1d
+ *      responses:
+ *        '200':
+ *          description: OK
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Track'
+ */
+
+router.get("/track/:trackId", async (req, res, next) => {
+  try {
+    const track = await Track.findById(req.params.trackId);
+    if (track) {
+      console.log("GET track...", track);
+      res.status(200).json(track);
+    } else {
+      res.status(200).json({ message: "track이 존재하지 않습니다." });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 module.exports = router;
