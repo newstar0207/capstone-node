@@ -23,7 +23,7 @@ components:
           example: [1, 2]
         event:
           type: string
-          example: r
+          example: R
         altitude:
           type: array
           example: [1, 2]

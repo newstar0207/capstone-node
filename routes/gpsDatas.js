@@ -18,6 +18,7 @@ const router = express.Router();
  *      tags: [GPSdatas]
  *      requestBody:
  *        required: true
+ *        description: "자전거: B, 달리기: R"
  *        content:
  *          application/json:
  *            schema:
@@ -32,8 +33,15 @@ const router = express.Router();
  */
 
 router.post("/gpsdata", async (req, res, next) => {
-  // TODO: 기록이 자전거나, 달리기로 나올 수 있는 기록인가?
-  const checkSpeedResult = checkSpeed(JSON.parse(req.body.speed)); // 다시
+  // 속도 체크: 자전거로 달렸을때 속도가 144 이상 나온 경우, 달리기로 44 이상 나온 경우
+  let checkSpeedResult = false;
+
+  if (req.body.event === "R") {
+    checkSpeedResult = checkSpeedRun(JSON.parse(req.body.speed));
+  } else {
+    checkSpeedResult = checkSpeedBike(JSON.parse(req.body.speed));
+  }
+
   if (checkSpeedResult === false) {
     return res.json({ message: "올바르지 않은 데이터 입니다." });
   }
@@ -60,7 +68,17 @@ router.post("/gpsdata", async (req, res, next) => {
   }
 });
 
-const checkSpeed = (speeds) => {
+const checkSpeedRun = (speeds) => {
+  for (let speed of speeds) {
+    if (speed >= 44) {
+      console.log(speed);
+      return false;
+    }
+  }
+  return true;
+};
+
+const checkSpeedBike = (speeds) => {
   for (let speed of speeds) {
     if (speed >= 144) {
       console.log(speed);
@@ -91,7 +109,6 @@ const checkSpeed = (speeds) => {
  *                $ref: '#/components/responses/GPSdataRank'
  */
 router.get("/:trackId/rank", async (req, res, next) => {
-  // TODO: 특정한 컬럼만 리턴하기
   try {
     const GPSdatas = GPSdata.find({ trackId: req.params.trackId })
       .select("userId totalTime createdAt")
