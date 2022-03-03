@@ -14,6 +14,9 @@ const trackRouter = require("./routes/tracks");
 const gpsRouter = require("./routes/gpsDatas");
 
 const app = express();
+
+app.use(cors());
+
 app.set("port", process.env.PORT || 3002);
 app.set("view engine", "html");
 nunjucks.configure("views", {
@@ -21,13 +24,6 @@ nunjucks.configure("views", {
   watch: true,
 });
 connect();
-
-app.use(
-  cors({
-    origin: "http://localhost:3100",
-    credentials: true,
-  })
-);
 
 app.use(morgan("dev"));
 app.use(express.static(path.join(__dirname, "public")));
