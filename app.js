@@ -2,7 +2,6 @@ const express = require("express");
 const path = require("path");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
-const session = require("express-session");
 const nunjucks = require("nunjucks");
 const dotenv = require("dotenv");
 const { swaggerUi, specs } = require("./swagger/Swagger");
@@ -28,17 +27,6 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
-app.use(
-  session({
-    resave: false,
-    saveUninitialized: false,
-    secret: process.env.COOKIE_SECRET,
-    cookie: {
-      httpOnly: true,
-      secure: false,
-    },
-  })
-);
 
 app.use(
   "/api-docs",

@@ -13,9 +13,9 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/{trackId}/track:
+ * /api/track/{trackId}:
  *    get:
- *      summary: Return Track.
+ *      summary: Return 특정한 트랙을 리턴함.
  *      description: 특정한 트랙을 리턴함.
  *      tags:
  *        - tracks
@@ -33,7 +33,7 @@ const router = express.Router();
  *                $ref: '#/components/schemas/Track'
  */
 
-router.get("/:trackId/track", async (req, res, next) => {
+router.get("track/:trackId", async (req, res, next) => {
   try {
     const track = await Track.findById(req.params.trackId);
     if (track) {
@@ -51,7 +51,7 @@ router.get("/:trackId/track", async (req, res, next) => {
  * @swagger
  * /api/track:
  *   post:
- *     summary: Add Track
+ *     summary: Add 트랙을 저장하고 ID 를 리턴함
  *     description: 새로운 트랙 생성
  *     tags:
  *       - tracks
@@ -166,9 +166,9 @@ router.post("/track", async (req, res, next) => {
 
 /**
  * @swagger
- * /api/search:
+ * /api/track/search:
  *   get:
- *     summary: 구간 탐색
+ *     summary: Return 구간에 맞는 트랙을 리턴함
  *     description: 구간에 맞게 특정 범위 안에 있는 트랙 중 길이가 긴 순으로 10개 까지 리턴
  *     tags:
  *       - tracks
@@ -198,7 +198,7 @@ router.post("/track", async (req, res, next) => {
  */
 
 // 여러경로 가져오기 (반경계산)
-router.get("/search", async (req, res, next) => {
+router.get("track/search", async (req, res, next) => {
   const bounds = req.query.bounds;
   const zoom = req.query.zoom;
   const event = req.query.event;

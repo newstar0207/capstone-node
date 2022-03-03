@@ -9,9 +9,14 @@ components:
         coordinates:
           type: array
           example: [[1, 1], [2, 2]]
-        userId:
-          type: integer
-          example: 1
+        user:
+          properties:
+            userId:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: test
         speed:
           type: array
           example: [1, 2]
@@ -40,6 +45,7 @@ components:
         - altitude
         - totalTime
   responses:
+    type: object
     GPSdata:
       properties:
         id:
@@ -47,16 +53,54 @@ components:
           example: 621334fc7d7f986fa9bd3425
     GPSdataRank:
       properties:
-        _id:
-          type: string
-          example: 621334fc7d7f986fa9bd3425
-          description: GPSdata Id
-        userId:
-          type: integer
-          example: 1
-        totalTime:
-          type: integer
-          example: 500
-        createdAt:
-          type: string
-          example: 2022-02-21T06:45:11.705Z
+        rank:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 621334fc7d7f986fa9bd3425
+              description: GPSdata Id
+            user:
+              properties:
+                userId:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: test
+            totalTime:
+              type: integer
+              example: 500
+            createdAt:
+              type: string
+              example: 2022-02-21T06:45:11.705Z
+        track:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 621334fc7d7f986fa9bd3425
+            name:
+              type: string
+              example: 영진전문대 500m
+            distance:
+              type: number
+              example: 500
+            userId:
+              type: number
+              example: 1
+            description:
+              type: string
+              example: 산책하기 좋아요
+            event:
+              type: string
+              example: bike
+            checkPoint:
+              type: array
+              example: [[1, 1], [2, 2]]
+            coordinates:
+              type: array
+              example: [[1, 1], [2, 2]]
+            altitude:
+              type: array
+              example: [1, 2]

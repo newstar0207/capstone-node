@@ -1,5 +1,6 @@
 const express = require("express");
 const GPSdata = require("../schemas/gpsData");
+const Track = require("../schemas/track");
 const { checkToken } = require("./middlewares");
 /**
  * @swagger
@@ -14,7 +15,7 @@ const router = express.Router();
  *  @swagger
  *  /api/gpsdata:
  *    post:
- *      summary: Add 새로운 GPSdata 저장
+ *      summary: Add GPSdata를 저장하고 ID 를 리턴함.
  *      tags: [GPSdatas]
  *      requestBody:
  *        required: true
@@ -49,7 +50,7 @@ router.post("/gpsdata", async (req, res, next) => {
   try {
     const gpsData = await GPSdata.create({
       trackId: req.body.trackId,
-      userId: req.body.userId,
+      user: { name: req.body.name, userId: req.body.userId },
       gps: { coordinates: JSON.parse(req.body.gps) }, // gps 좌표
       speed: JSON.parse(req.body.speed),
       time: JSON.parse(req.body.time),
@@ -90,9 +91,9 @@ const checkSpeedBike = (speeds) => {
 
 /**
  *  @swagger
- *  /api/{trackId}/rank:
+ *  /api/track/{trackId}/rank:
  *    get:
- *      summary: Return 선택한 트랙의 GPSdata를 시간순으로 정렬함
+ *      summary: Return 선택한 트랙의 GPSdata를 시간순으로 정렬하고 그 트랙도 같이 리턴
  *      parameters:
  *        - in: query
  *          name: trackId
@@ -108,10 +109,11 @@ const checkSpeedBike = (speeds) => {
  *              schema:
  *                $ref: '#/components/responses/GPSdataRank'
  */
-router.get("/:trackId/rank", async (req, res, next) => {
+router.get("/track/:trackId/rank", async (req, res, next) => {
   try {
+    const TrackResult = await Track.findById(req.params.trackId);
     const GPSdatas = GPSdata.find({ trackId: req.params.trackId })
-      .select("userId totalTime createdAt")
+      .select("user totalTime createdAt")
       .sort({ totalTime: "asc" });
     GPSdatas.exec((err, result) => {
       if (err) {
@@ -121,7 +123,7 @@ router.get("/:trackId/rank", async (req, res, next) => {
         if (result.length == 0) {
           res.status(200).json({ message: "gpsData가 존재하지 않습니다." });
         }
-        res.status(200).json(result);
+        res.status(200).json({ rank: result, track: TrackResult });
       }
     });
   } catch (err) {
@@ -134,7 +136,7 @@ router.get("/:trackId/rank", async (req, res, next) => {
 
 /**
  *  @swagger
- *  /api/{gpsdataId}/gpsdata:
+ *  /api/gpsdata/{gpsdataId}:
  *    get:
  *      summary: Return 특정한 GPSdata를 리턴
  *      tags:
@@ -153,7 +155,7 @@ router.get("/:trackId/rank", async (req, res, next) => {
  *                $ref: '#/components/schemas/GPSdatas'
  */
 
-router.get("/:gpsdataId/gpsdata", async (req, res, next) => {
+router.get("/gpsdata/:gpsdataId", async (req, res, next) => {
   try {
     const paceMaker = GPSdata.findById(req.params.gpsdataId);
     paceMaker.exec((err, result) => {
@@ -175,7 +177,7 @@ router.get("/:gpsdataId/gpsdata", async (req, res, next) => {
 
 /**
  *  @swagger
- *  /api/{gpsdataId}/gpsdata:
+ *  /api/gpsdata/{gpsdataId}:
  *    delete:
  *      summary: Delete 특정한 GPSdata를 삭제함
  *      tags:
@@ -190,7 +192,7 @@ router.get("/:gpsdataId/gpsdata", async (req, res, next) => {
  *          description: OK
  */
 
-router.delete("/:gpsdataId/gpsdata", async (req, res, next) => {
+router.delete("/gpsdata/:gpsdataId", async (req, res, next) => {
   try {
     await GPSdata.deleteOne({ id: req.params.gpsdataId });
     res.status(200).json({ message: "gpsData를 삭제하였습니다" });
