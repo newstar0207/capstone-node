@@ -1,6 +1,6 @@
-const express = require('express');
-const Track = require('../schemas/track');
-const { validationResult } = require('express-validator');
+const express = require("express");
+const Track = require("../schemas/track");
+const { validationResult } = require("express-validator");
 
 const router = express.Router();
 
@@ -33,28 +33,27 @@ const router = express.Router();
  *                $ref: '#/components/schemas/Track'
  */
 
-router.get('/:trackId/track', async (req, res, next) => {
-
+router.get("/:trackId/track", async (req, res, next) => {
   try {
     const track = await Track.findById(req.params.trackId);
     if (track) {
-      console.log('GET track...', track);
+      console.log("GET track...", track);
       res.status(200).json(track);
     } else {
-      res.status(200).json({ message : 'track이 존재하지 않습니다.'});
+      res.status(200).json({ message: "track이 존재하지 않습니다." });
     }
   } catch (err) {
     res.status(500).json({ message: err.message });
-  }  
+  }
 });
 
 /**
  * @swagger
  * /api/track:
  *   post:
- *     summary: Add Track 
- *     description: 새로운 트랙 생성 
- *     tags: 
+ *     summary: Add Track
+ *     description: 새로운 트랙 생성
+ *     tags:
  *       - tracks
  *     requestBody:
  *       requried: true
@@ -70,15 +69,14 @@ router.get('/:trackId/track', async (req, res, next) => {
  *             schema:
  *               $ref: '#/components/responses/Track'
  *       '200':
- *         description: track exist  
- */ 
+ *         description: track exist
+ */
 
-router.post('/track', async (req, res, next) => {
-
+router.post("/track", async (req, res, next) => {
   // TODO: 트랙 생성하면서 자신의 gpsdata를 이용해 트랙기록 저장
 
-  if(!validationResult(req).isEmpty()) {
-    return res.status(422).json('잘못된 입력값입니다.');
+  if (!validationResult(req).isEmpty()) {
+    return res.status(422).json("잘못된 입력값입니다.");
   }
 
   console.log(JSON.parse(req.body.gps));
@@ -89,25 +87,27 @@ router.post('/track', async (req, res, next) => {
   const storeEndGPS = storeGPSdate[storeGPSdate.length - 1];
 
   // 출발지점. 끝지점이 같은 경우 길이를 다르게 해야만 저장 가능
-  Track.find({ 
+  Track.find({
     gps: {
       $geoIntersects: {
         $geometry: {
-          type: 'LineString',
+          type: "LineString",
           coordinates: storeGPSdate,
-        }
-      }
-    }
-  }).find( async (error, results) => {
-    console.log(results, 'intersect results...');
+        },
+      },
+    },
+  }).find(async (error, results) => {
+    console.log(results, "intersect results...");
     if (error) {
-      console.error(error);    
+      console.error(error);
     }
     if (results.length == 0) {
       try {
-        const track = await createTrack(req.body, storeGPSdate); 
+        const track = await createTrack(req.body, storeGPSdate);
         console.log(track);
-        return res.status(201).json({ message: 'POST create track complete...'}); 
+        return res
+          .status(201)
+          .json({ message: "POST create track complete..." });
       } catch (err) {
         console.error(err);
         next(err);
@@ -116,22 +116,31 @@ router.post('/track', async (req, res, next) => {
 
     // 길이 계산
     for (let i = 0; i < results.length; i++) {
-      if (-100 <= (results[i].distance - storeDistance) && (results[i].distance - storeDistance) <= 100) { // 거리가 비슷
+      if (
+        -100 <= results[i].distance - storeDistance &&
+        results[i].distance - storeDistance <= 100
+      ) {
+        // 거리가 비슷
         // * 100 Math.floor(Num)
-        if (Math.floor(results[i].start_latlng[0] * 100) / 100 == Math.floor(storeStartGPS[0] * 100) / 100 && // 출발지, 목적지 좌표 비교
-          Math.floor(results[i].start_latlng[1] * 100) / 100 == Math.floor(storeStartGPS[1] * 100) / 100 &&
-          Math.floor(results[i].end_latlng[0] * 100) / 100 == Math.floor(storeEndGPS[0] * 100) / 100 &&
-          Math.floor(results[i].end_latlng[1] * 100) / 100 == Math.floor(storeEndGPS[1] * 100) / 100) {
-        
-          return res.status(200).json({ message: 'track exist...'})
-        }   
+        if (
+          Math.floor(results[i].start_latlng[0] * 100) / 100 ==
+            Math.floor(storeStartGPS[0] * 100) / 100 && // 출발지, 목적지 좌표 비교
+          Math.floor(results[i].start_latlng[1] * 100) / 100 ==
+            Math.floor(storeStartGPS[1] * 100) / 100 &&
+          Math.floor(results[i].end_latlng[0] * 100) / 100 ==
+            Math.floor(storeEndGPS[0] * 100) / 100 &&
+          Math.floor(results[i].end_latlng[1] * 100) / 100 ==
+            Math.floor(storeEndGPS[1] * 100) / 100
+        ) {
+          return res.status(200).json({ message: "track exist..." });
+        }
       }
     }
 
     try {
-      const track = await createTrack(req.body, storeGPSdate); 
+      const track = await createTrack(req.body, storeGPSdate);
       console.log(track);
-      return res.status(201).json({ message: 'POST create track complete...'}); 
+      return res.status(201).json({ message: "POST create track complete..." });
     } catch (err) {
       console.error(err);
       next(err);
@@ -151,8 +160,8 @@ router.post('/track', async (req, res, next) => {
       checkPoint: JSON.parse(trackInfo.checkPoint), // TODO: 체크포인트
       start_latlng: storeGPSdate[0],
       end_latlng: storeGPSdate[storeGPSdate.length - 1],
-    });  
-  }
+    });
+  };
 });
 
 /**
@@ -174,45 +183,57 @@ router.post('/track', async (req, res, next) => {
  *         required: true
  *         description: query string
  *         example: ?zoom=16
+ *       - name: event
+ *         in : query
+ *         required: true
+ *         description: query string
+ *         example: ?event=R or event=B
  *     responses:
  *       '200':
  *         description: 구간 리턴
  *         content:
  *           application/json:
- *             schema: 
+ *             schema:
  *               $ref: '#/components/schemas/Track'
  */
-  
 
 // 여러경로 가져오기 (반경계산)
-router.get('/search', async (req, res, next) => {
+router.get("/search", async (req, res, next) => {
   const bounds = req.query.bounds;
   const zoom = req.query.zoom;
+  const event = req.query.event;
 
   console.log(JSON.stringify(bounds));
   const tracks = Track.find({
     "gps.coordinates": {
-      $geoWithin: { // 왼쪽 밑, 오른쪽 위 좌표 사이의 저장된 문서를 가져옴
-        $box: [[parseFloat(bounds[0]),parseFloat(bounds[1])], [parseFloat(bounds[2]),parseFloat(bounds[3])]]
+      $geoWithin: {
+        // 왼쪽 밑, 오른쪽 위 좌표 사이의 저장된 문서를 가져옴
+        $box: [
+          [parseFloat(bounds[0]), parseFloat(bounds[1])],
+          [parseFloat(bounds[2]), parseFloat(bounds[3])],
+        ],
+      },
+    },
+  });
+  tracks
+    .where({ event: event })
+    .sort({ distance: -1 })
+    .limit(10)
+    .exec((error, result) => {
+      // 길이를 기준으로 내림차순이며, 10개로 개수를 제한함.
+      if (error) {
+        console.log(error);
+        next(error);
       }
-    }
-  })    
-  tracks.sort({distance: -1}).limit(10).exec((error, result) => { // 길이를 기준으로 내림차순이며, 10개로 개수를 제한함.
-    if(error) {
-      console.log(error);
-      next(error);
-    }
-    if(result.length == 0) {
-      return res.status(200).json({result: result, message: '해당 구간에 존재하는 트랙이 없습니다.', zoom: zoom})
-    }
-    res.status(200).json({result: result, message: 'ok', zoom: zoom});
-  })
-})
-
+      if (result.length == 0) {
+        return res.status(200).json({
+          result: result,
+          message: "해당 구간에 존재하는 트랙이 없습니다.",
+          zoom: zoom,
+        });
+      }
+      res.status(200).json({ result: result, message: "ok", zoom: zoom });
+    });
+});
 
 module.exports = router;
-
-// 1. 1. 경로 저장 → 단순한 저장
-// 2. 경로 가져오기 → 그냥 내가 달리기 위해 가져옴
-// 3. 여러 경로 가져오기 (위치기반)
-
