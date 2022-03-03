@@ -39,14 +39,14 @@ const router = express.Router();
 router.post("/track", async (req, res, next) => {
   // TODO: 트랙 생성하면서 자신의 gpsdata를 이용해 트랙기록 저장
 
+  console.log(req.body);
+
   if (!validationResult(req).isEmpty()) {
     return res.status(422).json("잘못된 입력값입니다.");
   }
 
-  console.log(JSON.parse(req.body.gps));
-
   const storeGPSdate = JSON.parse(req.body.gps);
-  const storeDistance = req.body.distance;
+  const storeDistance = JSON.parse(req.body.distance);
   const storeStartGPS = storeGPSdate[0];
   const storeEndGPS = storeGPSdate[storeGPSdate.length - 1];
 
@@ -115,7 +115,7 @@ router.post("/track", async (req, res, next) => {
   const createTrack = async (trackInfo, storeGPSdate) => {
     return await Track.create({
       name: trackInfo.name, // 트랙 이름
-      distance: parseFloat(trackInfo.distance), // 트랙 전체 거리
+      distance: parseFloat(JOSN.parse(trackInfo.distance)), // 트랙 전체 거리
       userId: parseInt(trackInfo.userId), // 트랙 저장한 유저 아이디
       description: trackInfo.description, // 트랙 설명
       event: trackInfo.event, // 종목
@@ -166,6 +166,10 @@ router.get("/track/search", async (req, res, next) => {
   const bounds = req.query.bounds;
   const zoom = req.query.zoom;
   const event = req.query.event;
+
+  if (!bounds || !event) {
+    return res.json({ message: "잘못된 입력형식입니다." });
+  }
 
   console.log(JSON.stringify(bounds));
 

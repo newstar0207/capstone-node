@@ -23,7 +23,7 @@ components:
         checkPoint:
           type: array
           example: [[1, 1], [2, 2]]
-        coordinates:
+        gps:
           type: array
           example: [[1, 1], [2, 2]]
         altitude:
@@ -36,7 +36,7 @@ components:
         - description
         - event
         - checkPoint
-        - coordinates
+        - gps
         - altitude
   responses:
     Track:
