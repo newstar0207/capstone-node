@@ -21,6 +21,13 @@ nunjucks.configure("views", {
 });
 connect();
 
+app.use(
+  cors({
+    origin: "http://localhost:3100",
+    credentials: true,
+  })
+);
+
 app.use(morgan("dev"));
 app.use(express.static(path.join(__dirname, "public")));
 // body-parser

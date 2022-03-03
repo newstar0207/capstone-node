@@ -190,6 +190,7 @@ router.get("/track/search", async (req, res, next) => {
     .limit(10)
     .exec((error, result) => {
       // 길이를 기준으로 내림차순이며, 10개로 개수를 제한함.
+      // TODO: select 해서 필요한 거만 받기
       if (error) {
         console.log(error);
         next(error);
