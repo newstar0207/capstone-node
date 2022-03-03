@@ -33,7 +33,7 @@ const router = express.Router();
  *                $ref: '#/components/schemas/Track'
  */
 
-router.get("track/:trackId", async (req, res, next) => {
+router.get("/track/:trackId", async (req, res, next) => {
   try {
     const track = await Track.findById(req.params.trackId);
     if (track) {
@@ -198,7 +198,7 @@ router.post("/track", async (req, res, next) => {
  */
 
 // 여러경로 가져오기 (반경계산)
-router.get("track/search", async (req, res, next) => {
+router.get("/track/search", async (req, res, next) => {
   const bounds = req.query.bounds;
   const zoom = req.query.zoom;
   const event = req.query.event;
