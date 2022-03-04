@@ -42,6 +42,7 @@ app.use("/api", trackRouter);
 app.use("/api", gpsRouter);
 
 app.get("/", function (req, res) {
+  console.log(req);
   res.send("hello world");
 });
 

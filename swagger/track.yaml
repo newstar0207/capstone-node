@@ -2,18 +2,20 @@ components:
   schemas:
     Track:
       properties:
-        id:
-          type: string
-          example: 621334fc7d7f986fa9bd3425
         name:
           type: string
           example: 영진전문대 500m
         distance:
           type: number
           example: 500
-        userId:
-          type: number
-          example: 1
+        user:
+          properties:
+            userId:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: test
         description:
           type: string
           example: 산책하기 좋아요
@@ -32,7 +34,7 @@ components:
       required:
         - name
         - distance
-        - userId
+        - user
         - description
         - event
         - checkPoint

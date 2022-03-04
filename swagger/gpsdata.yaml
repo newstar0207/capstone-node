@@ -36,8 +36,8 @@ components:
           type: integer
           example: 300
       required:
-        - coordinates
-        - userId
+        - gps
+        - user
         - speed
         - time
         - distance
@@ -85,10 +85,15 @@ components:
               example: 영진전문대 500m
             distance:
               type: number
-              example: 500
-            userId:
-              type: number
-              example: 1
+              example: 500(km)
+            user:
+              properties:
+                userId:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: test
             description:
               type: string
               example: 산책하기 좋아요
