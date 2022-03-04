@@ -228,17 +228,6 @@ router.get("/track/search", async (req, res, next) => {
  *              schema:
  *                $ref: '#/components/schemas/Track'
  */
-router.get("/track", async (req, res, next) => {
-  // 모든 트랙에서 Id 만 리턴
-  const track = Track.find({}).select("id");
-  track.exec((err, result) => {
-    if (err) {
-      return res.json({ message: "쿼리에 실패하였습니다." });
-    }
-    return res.json({ trackId: result });
-  });
-});
-
 router.get("/track/:trackId", async (req, res, next) => {
   try {
     const track = await Track.findById(req.params.trackId);
@@ -251,6 +240,33 @@ router.get("/track/:trackId", async (req, res, next) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+});
+
+/**
+ * @swagger
+ * /api/track:
+ *  get:
+ *    summary: Retrun 모든트랙의 Id 만 리턴
+ *    description: 모든 트랙의 Id 만 리턴함
+ *    tags:
+ *      - tracks
+ *    responses:
+ *      '200':
+ *        description: OK
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/responses/TrackId'
+ */
+router.get("/track", async (req, res, next) => {
+  // 모든 트랙에서 Id 만 리턴
+  const track = Track.find({}).select("id");
+  track.exec((err, result) => {
+    if (err) {
+      return res.json({ message: "쿼리에 실패하였습니다." });
+    }
+    return res.json({ trackId: result });
+  });
 });
 
 module.exports = router;
