@@ -2,6 +2,7 @@ const express = require("express");
 const Track = require("../schemas/track");
 const { validationResult } = require("express-validator");
 const res = require("express/lib/response");
+const { response } = require("express");
 
 const router = express.Router();
 
@@ -36,27 +37,20 @@ const router = express.Router();
  *       '200':
  *         description: track exist
  */
-router.get("/test", async (req, res, next) => {
-  console.log(req);
-  return res.status(200);
-});
+
+// if (!validationResult(req).isEmpty()) {
+//   return res.status(422).json("잘못된 입력값입니다.");
+// }
 
 router.post("/track", async (req, res, next) => {
   // TODO: 트랙 생성하면서 자신의 gpsdata를 이용해 트랙기록 저장
-
-  console.log(req.body);
-
-  if (!validationResult(req).isEmpty()) {
-    return res.status(422).json("잘못된 입력값입니다.");
-  }
 
   const storeGPSdate = JSON.parse(req.body.gps);
   const storeDistance = JSON.parse(req.body.distance);
   const storeStartGPS = storeGPSdate[0];
   const storeEndGPS = storeGPSdate[storeGPSdate.length - 1];
 
-  // 출발지점. 끝지점이 같은 경우 길이를 다르게 해야만 저장 가능
-  Track.find({
+  const intersectTrack = Track.find({
     gps: {
       $geoIntersects: {
         $geometry: {
@@ -65,71 +59,73 @@ router.post("/track", async (req, res, next) => {
         },
       },
     },
-  }).find(async (error, results) => {
-    console.log(results, "intersect results...");
+  });
+  intersectTrack.exec(async (error, result) => {
     if (error) {
       console.error(error);
+      next(error);
+      // res.status(500).json({ message: "쿼리에 실패하였습니다." });
     }
-    if (results.length == 0) {
-      try {
-        const track = await createTrack(req.body, storeGPSdate);
-        console.log(track);
-        return res
-          .status(201)
-          .json({ message: "POST create track complete..." });
-      } catch (err) {
-        console.error(err);
-        next(err);
-      }
+    // 교차하는 트랙이 없는 경우...
+    if (result.length == 0) {
+      return createTrack(req.body); // 트랙 생성
+    }
+    // 교차하는 트랙 중 길이 체크...
+    const trackDistanceResult = checkTrackDistance(result);
+    if (!trackDistanceResult) {
+      res.status(200).json({ message: "이미 존재하는 트랙입니다." });
     }
 
-    // 길이 계산
-    for (let i = 0; i < results.length; i++) {
+    return createTrack(req.body); // 트랙 생성
+  });
+
+  // 트랙 길이를 체크
+  const checkTrackDistance = (result) => {
+    // 교차하는 트랙이 있는 경우 1.길이계산
+    for (let i = 0; i < result.length; i++) {
       if (
-        -100 <= results[i].distance - storeDistance &&
-        results[i].distance - storeDistance <= 100
+        -100 <= result[i].distance - storeDistance &&
+        result[i].distance - storeDistance <= 100
       ) {
         // 거리가 비슷
         // * 100 Math.floor(Num)
         if (
-          Math.floor(results[i].start_latlng[0] * 100) / 100 ==
+          Math.floor(result[i].start_latlng[0] * 100) / 100 ==
             Math.floor(storeStartGPS[0] * 100) / 100 && // 출발지, 목적지 좌표 비교
-          Math.floor(results[i].start_latlng[1] * 100) / 100 ==
+          Math.floor(result[i].start_latlng[1] * 100) / 100 ==
             Math.floor(storeStartGPS[1] * 100) / 100 &&
-          Math.floor(results[i].end_latlng[0] * 100) / 100 ==
+          Math.floor(result[i].end_latlng[0] * 100) / 100 ==
             Math.floor(storeEndGPS[0] * 100) / 100 &&
-          Math.floor(results[i].end_latlng[1] * 100) / 100 ==
+          Math.floor(result[i].end_latlng[1] * 100) / 100 ==
             Math.floor(storeEndGPS[1] * 100) / 100
         ) {
-          return res.status(200).json({ message: "track exist..." });
+          return false;
         }
       }
     }
-
+  };
+  // 트랙 생성
+  const createTrack = async (trackInfo) => {
     try {
-      const track = await createTrack(req.body, storeGPSdate);
-      console.log(track);
-      return res.status(201).json({ message: "POST create track complete..." });
+      const track = await Track.create({
+        name: trackInfo.name, // 트랙 이름
+        distance: parseFloat(trackInfo.distance), // 트랙 전체 거리
+        user: { name: req.body.name, userId: req.body.userId },
+        description: trackInfo.description, // 트랙 설명
+        event: trackInfo.event, // 종목
+        gps: { coordinates: JSON.parse(trackInfo.gps) }, // gps 좌표
+        altitude: JSON.parse(trackInfo.altitude), // 고도
+        checkPoint: JSON.parse(trackInfo.checkPoint), // TODO: 체크포인트
+        start_latlng: storeGPSdate[0],
+        end_latlng: storeGPSdate[storeGPSdate.length - 1],
+      });
+      return res
+        .status(201)
+        .json({ message: "트랙을 생성하였습니다", id: track.id });
     } catch (err) {
-      console.error(err);
-      next(err);
+      console.log(err);
+      return res.json({ message: "트랙생성에 실패하였습니다." });
     }
-  });
-
-  // console.log(tracks);
-  const createTrack = async (trackInfo, storeGPSdate) => {
-    return await Track.create({
-      name: trackInfo.name, // 트랙 이름
-      distance: parseFloat(trackInfo.distance), // 트랙 전체 거리
-      userId: parseInt(trackInfo.userId), // 트랙 저장한 유저 아이디
-      description: trackInfo.description, // 트랙 설명
-      event: trackInfo.event, // 종목
-      gps: { coordinates: JSON.parse(trackInfo.gps) }, // gps 좌표
-      altitude: JSON.parse(trackInfo.altitude), // 고도
-      checkPoint: JSON.parse(trackInfo.checkPoint), // TODO: 체크포인트
-      start_latlng: storeGPSdate[0],
-      end_latlng: storeGPSdate[storeGPSdate.length - 1],
-    });
   };
 });
 
@@ -207,8 +203,6 @@ router.get("/track/search", async (req, res, next) => {
           zoom: zoom,
         });
       }
-
-      // .writeHead({ "Access-Control-Allow-Origin": "*" })
       res.status(200).json({ result: result, message: "ok", zoom: zoom });
     });
 });
@@ -234,6 +228,16 @@ router.get("/track/search", async (req, res, next) => {
  *              schema:
  *                $ref: '#/components/schemas/Track'
  */
+router.get("/track", async (req, res, next) => {
+  // 모든 트랙에서 Id 만 리턴
+  const track = Track.find({}).select("id");
+  track.exec((err, result) => {
+    if (err) {
+      return res.json({ message: "쿼리에 실패하였습니다." });
+    }
+    return res.json({ trackId: result });
+  });
+});
 
 router.get("/track/:trackId", async (req, res, next) => {
   try {
