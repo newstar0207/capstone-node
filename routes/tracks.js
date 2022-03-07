@@ -73,7 +73,7 @@ router.post("/track", async (req, res, next) => {
     // 교차하는 트랙 중 길이 체크...
     const trackDistanceResult = checkTrackDistance(result);
     if (!trackDistanceResult) {
-      res.status(200).json({ message: "이미 존재하는 트랙입니다." });
+      return res.status(200).json({ message: "이미 존재하는 트랙입니다." });
     }
 
     return createTrack(req.body); // 트랙 생성
@@ -108,8 +108,8 @@ router.post("/track", async (req, res, next) => {
   const createTrack = async (trackInfo) => {
     try {
       const track = await Track.create({
-        name: trackInfo.name, // 트랙 이름
-        distance: parseFloat(trackInfo.distance), // 트랙 전체 거리
+        trackName: trackInfo.trackName, // 트랙 이름
+        totalDistance: parseFloat(trackInfo.totalDistance), // 트랙 전체 거리
         user: { name: req.body.name, userId: req.body.userId },
         description: trackInfo.description, // 트랙 설명
         event: trackInfo.event, // 종목
@@ -124,7 +124,7 @@ router.post("/track", async (req, res, next) => {
         .json({ message: "트랙을 생성하였습니다", id: track.id });
     } catch (err) {
       console.log(err);
-      return res.json({ message: "트랙생성에 실패하였습니다." });
+      return res.json({ message: "트랙생성에 실패하였습니다.", error: err });
     }
   };
 });
@@ -187,7 +187,7 @@ router.get("/track/search", async (req, res, next) => {
   });
   tracks
     .where({ event: event })
-    .sort({ distance: -1 })
+    .sort({ totalDistance: -1 })
     .limit(10)
     .exec((error, result) => {
       // 길이를 기준으로 내림차순이며, 10개로 개수를 제한함.

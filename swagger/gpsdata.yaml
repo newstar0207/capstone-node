@@ -9,14 +9,12 @@ components:
         gps:
           type: array
           example: [[1, 1], [2, 2]]
-        user:
-          properties:
-            userId:
-              type: integer
-              example: 1
-            name:
-              type: string
-              example: test
+        userId:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: test
         speed:
           type: array
           example: [1, 2]
@@ -37,7 +35,8 @@ components:
           example: 300
       required:
         - gps
-        - user
+        - name
+        - userId
         - speed
         - time
         - distance

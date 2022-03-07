@@ -14,12 +14,12 @@ const lineStringSchema = new mongoose.Schema({
 
 const { Schema } = mongoose;
 const trackSchema = new Schema({
-  name: {
+  trackName: {
     // 트랙이름
     type: String,
     required: true,
   },
-  distance: {
+  totalDistance: {
     // 트랙의 총 거리
     type: Number, // float
     required: true,

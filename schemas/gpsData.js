@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { string } = require("nunjucks/src/filters");
 
 // 트랙을 만들기 전 개인 sns에 나오는 경로 데이터 컬렉션
 
