@@ -46,7 +46,7 @@ router.post("/track", async (req, res, next) => {
   // TODO: 트랙 생성하면서 자신의 gpsdata를 이용해 트랙기록 저장
 
   const storeGPSdate = JSON.parse(req.body.gps);
-  const storeDistance = JSON.parse(req.body.distance);
+  const storeDistance = JSON.parse(req.body.totalDistance);
   const storeStartGPS = storeGPSdate[0];
   const storeEndGPS = storeGPSdate[storeGPSdate.length - 1];
 
@@ -84,8 +84,8 @@ router.post("/track", async (req, res, next) => {
     // 교차하는 트랙이 있는 경우 1.길이계산
     for (let i = 0; i < result.length; i++) {
       if (
-        -100 <= result[i].distance - storeDistance &&
-        result[i].distance - storeDistance <= 100
+        -100 <= result[i].totalDistance - storeDistance &&
+        result[i].totalDistance - storeDistance <= 100
       ) {
         // 거리가 비슷
         // * 100 Math.floor(Num)
