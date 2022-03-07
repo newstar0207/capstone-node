@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
 const GPSdata = require("./schemas/gpsData");
 const dotenv = require("dotenv");
+const Track = require("./schemas/track");
 
 dotenv.config();
 
 const gpsData = [
   {
-    trackId: "622550634fed9b1c24c48ccd",
+    trackId: "",
     totalTime: 5000,
     user: {
       userId: 1,
@@ -109,7 +110,7 @@ const gpsData = [
     ],
   },
   {
-    trackId: "622550634fed9b1c24c48ccd",
+    trackId: "",
     totalTime: 5500,
     user: {
       userId: 2,
@@ -332,6 +333,17 @@ const connect = () => {
         console.log("몽고디비 연결 에러", error);
       } else {
         console.log("몽고디비 연결 성공");
+
+        const query = Track.where({ trackName: "경북대학교 한바퀴" });
+        query.findOne(function (err, track) {
+          if (err) return "trackID 찾기에 실패하였습니다.";
+          if (track) {
+            gpsData[0].trackId = track.id;
+            gpsData[1].trackId = track.id;
+            gpsData[2].trackId = track.id;
+          }
+        });
+
         const seedDB = async () => {
           await GPSdata.deleteMany({});
           await GPSdata.insertMany(gpsData);
