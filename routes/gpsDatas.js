@@ -98,7 +98,7 @@ const checkSpeedBike = (speeds) => {
  *        - in: query
  *          name: trackId
  *          required: true
- *          example: 621390d75463764b87a94f1d
+ *          example: 622561232d6ee07c40f75bda
  *      tags:
  *        - GPSdatas
  *      responses:
@@ -121,9 +121,11 @@ router.get("/track/:trackId/rank", async (req, res, next) => {
         next(err);
       } else {
         if (result.length == 0) {
-          res.status(200).json({ message: "gpsData가 존재하지 않습니다." });
+          return res
+            .status(200)
+            .json({ message: "gpsData가 존재하지 않습니다." });
         }
-        res.status(200).json({ rank: result, track: TrackResult });
+        return res.status(200).json({ rank: result, track: TrackResult });
       }
     });
   } catch (err) {
@@ -145,7 +147,7 @@ router.get("/track/:trackId/rank", async (req, res, next) => {
  *        - in: path
  *          name: gpsdataId
  *          required: true
- *          example: 621390d75463764b87a94f1d
+ *          example: 62256147dc2958292cb17110
  *      responses:
  *        '200':
  *          description: OK
@@ -163,10 +165,13 @@ router.get("/gpsdata/:gpsdataId", async (req, res, next) => {
         console.error(err);
         next(err);
       } else {
-        if (result.length == 0) {
-          res.status(200).json({ message: "gpsData가 존재하지 않습니다." });
+        console.log(result);
+        if (!result) {
+          return res
+            .status(200)
+            .json({ message: "gpsData가 존재하지 않습니다." });
         }
-        res.status(200).json(result);
+        return res.status(200).json(result);
       }
     });
   } catch (err) {
@@ -186,7 +191,7 @@ router.get("/gpsdata/:gpsdataId", async (req, res, next) => {
  *        - in: path
  *          name: gpsdataId
  *          required: true
- *          example: 621390d75463764b87a94f1d
+ *          example: 62256147dc2958292cb17110
  *      responses:
  *        '200':
  *          description: OK

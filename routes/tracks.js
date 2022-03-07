@@ -142,7 +142,7 @@ router.post("/track", async (req, res, next) => {
  *         in: query
  *         required: true
  *         description: query string
- *         example: ?bounds=128.22&bounds=33.33&bounds=128.33&bounds=33.33
+ *         example: ?bounds=128.59376907348633&bounds=35.87806262146614&bounds=128.63033294677734&bounds=35.89941027276767
  *       - name: zoom
  *         in : query
  *         required: true
@@ -219,7 +219,7 @@ router.get("/track/search", async (req, res, next) => {
  *        - in: path
  *          name: trackId
  *          required: true
- *          example: 621390d75463764b87a94f1d
+ *          example: 622561232d6ee07c40f75bda
  *      responses:
  *        '200':
  *          description: OK
