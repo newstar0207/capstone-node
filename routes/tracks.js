@@ -45,8 +45,9 @@ const router = express.Router();
 router.post("/track", async (req, res, next) => {
   // TODO: 트랙 생성하면서 자신의 gpsdata를 이용해 트랙기록 저장
 
-  const storeGPSdate = JSON.parse(req.body.gps);
-  const storeDistance = JSON.parse(req.body.totalDistance);
+  console.log(req.body);
+  const storeGPSdate = req.body.gps;
+  const storeDistance = req.body.totalDistance;
   const storeStartGPS = storeGPSdate[0];
   const storeEndGPS = storeGPSdate[storeGPSdate.length - 1];
 
@@ -67,10 +68,11 @@ router.post("/track", async (req, res, next) => {
       // res.status(500).json({ message: "쿼리에 실패하였습니다." });
     }
     // 교차하는 트랙이 없는 경우...
+    console.log(result);
     if (result.length == 0) {
       return createTrack(req.body); // 트랙 생성
     }
-    // 교차하는 트랙 중 길이 체크...
+    // 교차하는 트랙 중 길이와 좌표 비교...
     const trackDistanceResult = checkTrackDistance(result);
     if (!trackDistanceResult) {
       return res.status(200).json({ message: "이미 존재하는 트랙입니다." });
@@ -84,11 +86,13 @@ router.post("/track", async (req, res, next) => {
     // 교차하는 트랙이 있는 경우 1.길이계산
     for (let i = 0; i < result.length; i++) {
       if (
-        -100 <= result[i].totalDistance - storeDistance &&
-        result[i].totalDistance - storeDistance <= 100
+        (result[i].totalDistance - storeDistance) *
+          (result[i].totalDistance - storeDistance) <=
+        10000
       ) {
         // 거리가 비슷
         // * 100 Math.floor(Num)
+        console.log();
         if (
           Math.floor(result[i].start_latlng[0] * 100) / 100 ==
             Math.floor(storeStartGPS[0] * 100) / 100 && // 출발지, 목적지 좌표 비교
@@ -102,6 +106,7 @@ router.post("/track", async (req, res, next) => {
           return false;
         }
       }
+      return true;
     }
   };
   // 트랙 생성
@@ -113,9 +118,9 @@ router.post("/track", async (req, res, next) => {
         user: { name: req.body.name, userId: req.body.userId },
         description: trackInfo.description, // 트랙 설명
         event: trackInfo.event, // 종목
-        gps: { coordinates: JSON.parse(trackInfo.gps) }, // gps 좌표
-        altitude: JSON.parse(trackInfo.altitude), // 고도
-        checkPoint: JSON.parse(trackInfo.checkPoint), // TODO: 체크포인트
+        gps: { coordinates: trackInfo.gps }, // gps 좌표
+        altitude: trackInfo.altitude, // 고도
+        checkPoint: trackInfo.checkPoint, // TODO: 체크포인트
         start_latlng: storeGPSdate[0],
         end_latlng: storeGPSdate[storeGPSdate.length - 1],
       });
