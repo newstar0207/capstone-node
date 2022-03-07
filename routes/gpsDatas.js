@@ -38,9 +38,9 @@ router.post("/gpsdata", async (req, res, next) => {
   let checkSpeedResult = false;
 
   if (req.body.event === "R") {
-    checkSpeedResult = checkSpeedRun(JSON.parse(req.body.speed));
+    checkSpeedResult = checkSpeedRun(req.body.speed);
   } else {
-    checkSpeedResult = checkSpeedBike(JSON.parse(req.body.speed));
+    checkSpeedResult = checkSpeedBike(req.body.speed);
   }
 
   if (checkSpeedResult === false) {
@@ -51,13 +51,13 @@ router.post("/gpsdata", async (req, res, next) => {
     const gpsData = await GPSdata.create({
       trackId: req.body.trackId,
       user: { name: req.body.name, userId: req.body.userId },
-      gps: { coordinates: JSON.parse(req.body.gps) }, // gps 좌표
-      speed: JSON.parse(req.body.speed),
-      time: JSON.parse(req.body.time),
+      gps: { coordinates: req.body.gps }, // gps 좌표
+      speed: req.body.speed,
+      time: req.body.time,
       totalTime: req.body.totalTime,
-      distance: JSON.parse(req.body.distance),
+      distance: req.body.distance,
       event: req.body.event,
-      altitude: JSON.parse(req.body.altitude),
+      altitude: req.body.altitude,
     });
     console.log(gpsData);
     res
