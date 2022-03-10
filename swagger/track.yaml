@@ -7,7 +7,7 @@ components:
           example: 영진전문대 500m
         totalDistance:
           type: number
-          example: 500
+          example: 500(100미터 이상 저장가능)
         userId:
           type: integer
           example: 1
