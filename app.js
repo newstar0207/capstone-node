@@ -12,7 +12,6 @@ dotenv.config();
 const connect = require("./schemas");
 const trackRouter = require("./routes/tracks");
 const gpsRouter = require("./routes/gpsDatas");
-const res = require("express/lib/response");
 
 const app = express();
 

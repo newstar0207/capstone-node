@@ -48,9 +48,9 @@ router.post(
     .isArray()
     .withMessage({ message: "gps 데이터 형식이 잘못되었습니다." }),
   body("totalDistance").custom((value) => {
-    if (value <= 99 || value.isNumeric()) {
+    if (value <= 99 || typeof value !== "number") {
       return Promise.reject("100 이상으로 트랙을 생성해 주세요.");
-    }
+    } else return true;
   }),
   async (req, res, next) => {
     // TODO: 트랙 생성하면서 자신의 gpsdata를 이용해 트랙기록 저장
