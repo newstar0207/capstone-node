@@ -12,6 +12,22 @@ const { checkToken } = require("./middlewares");
 
 const router = express.Router();
 
+// router.get("/test", () => {
+//   console.log("test 실행중.........");
+//   const gpsdatas = GPSdata.aggregate([
+//     {
+//       $group: { _id: "$trackId", count: { $count: {} } },
+//     },
+//   ]);
+//   gpsdatas.exec((err, result) => {
+//     if (err) {
+//       console.log(err);
+//     } else {
+//       console.log(result);
+//     }
+//   });
+// });
+
 /**
  *  @swagger
  *  /api/gpsdata:
@@ -155,9 +171,10 @@ router.get(
           next(err);
         } else {
           if (result.length == 0) {
-            return res
-              .status(200)
-              .json({ message: "gpsData가 존재하지 않습니다." });
+            return res.status(200).json({
+              rank: "gpsData가 존재하지 않습니다.",
+              track: TrackResult,
+            });
           }
           return res.status(200).json({ rank: result, track: TrackResult });
         }

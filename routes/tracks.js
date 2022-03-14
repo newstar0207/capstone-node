@@ -98,11 +98,7 @@ router.post(
     const checkTrackDistance = (result) => {
       // 교차하는 트랙이 있는 경우 1.길이계산
       for (let i = 0; i < result.length; i++) {
-        if (
-          (result[i].totalDistance - storeDistance) *
-            (result[i].totalDistance - storeDistance) <=
-          10000
-        ) {
+        if ((result[i].totalDistance - storeDistance) ** 2 <= 0.011) {
           // 거리가 비슷
           // * 100 Math.floor(Num)
           if (
