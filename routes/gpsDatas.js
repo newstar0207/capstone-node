@@ -56,14 +56,14 @@ router.post(
     .exists()
     .isIn(["R", "B"])
     .withMessage({ message: "event 입력 형식이 잘못되었습니다." }),
-  body("speed")
-    .exists()
-    .custom((speed) => {
-      console.log(speed.length);
-      if (speed.length <= 2) {
-      }
-    })
-    .withMessage({ message: "speed 입력 형식이 잘못되었습니다." }),
+  // body("speed") // 거리로 바꾸기
+  //   .exists()
+  //   .custom((speed) => {
+  //     console.log(speed.length);
+  //     if (speed.length <= 2) {
+  //     }
+  //   })
+  //   .withMessage({ message: "speed 입력 형식이 잘못되었습니다." }),
   async (req, res, next) => {
     // 속도 체크: 자전거로 달렸을때 속도가 144 이상 나온 경우, 달리기로 44 이상 나온 경우
 
@@ -182,6 +182,7 @@ router.get(
     } catch (err) {
       console.log(err);
       next(err);
+      // return r
     }
   }
 );
