@@ -29,6 +29,35 @@ const router = express.Router();
 // });
 
 /**
+ * @swagger
+ * /api/gpsdata:
+ *  get:
+ *    summary: Return 모든 gpsdata ID를 리턴함.
+ *    tags: [GPSdatas]
+ *    responses:
+ *      '200':
+ *        description: OK
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/responses/GPSdataId'
+ */
+
+router.get("/gpsdata", async (req, res, next) => {
+  const gpsDataId = GPSdata.find({}).select("id");
+  gpsDataId.exec((err, result) => {
+    if (err) {
+      return res.status(200).json({ err: err });
+    }
+    if (result.length == 0) {
+      console.log(result.length, "저장되어있는 gpsdata 개수");
+      return res.status(200).json({ message: "존재하는 gpsData가 없습니다." });
+    }
+    return res.status(200).json({ gpsDataId: result });
+  });
+});
+
+/**
  *  @swagger
  *  /api/gpsdata:
  *    post:

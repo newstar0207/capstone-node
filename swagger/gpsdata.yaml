@@ -45,6 +45,14 @@ components:
         - totalTime
   responses:
     type: object
+    GPSdataId:
+      properties:
+        gpsDataId:
+          type: object
+          properties:
+            id:
+              type: string
+              example: 621334fc7d7f986fa9bd3425
     GPSdata:
       properties:
         id:
