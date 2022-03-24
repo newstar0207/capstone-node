@@ -1,0 +1,212 @@
+components:
+  responses:
+    getTrackSearch200:
+      properties:
+        user:
+          properties:
+            name:
+              type: string
+              example: 김새별
+            userId:
+              type: number
+              example: 1
+        _id:
+          type: string
+          example: 621334fc7d7f986fa9bd3425
+        trackName:
+          type: string
+          example: 영진전문대학교
+        totalDistance:
+          type: number
+          example: 25
+        description:
+          type: string
+          example: 경치가 좋아
+        event:
+          type: string
+          example: R
+        gps:
+          properties:
+            coordinates:
+              type: array
+              example:
+                [
+                  [128.46389651298523, 35.94679607560072],
+                  [128.46373558044434, 35.94685687521724],
+                ]
+        start_latlng:
+          type: array
+          example: [128.46389651298523, 35.94679607560072]
+        end_latlng:
+          type: array
+          example: [128.46389651298523, 35.94679607560072]
+        checkPoint:
+          type: array
+          example:
+            [
+              [128.46389651298523, 35.94679607560072],
+              [128.46373558044434, 35.94685687521724],
+            ]
+        altiitude:
+          type: array
+          example: [11, 12]
+        createdAt:
+          type: string
+          example: 2022-03-21T06:24:11.650Z
+
+    getGpsData200:
+      properties:
+        _id:
+          type: array
+          example: 621334fc7d7f986fa9bd3425
+    getGpsData404:
+      properties:
+        messsage:
+          type: string
+          example: 존재하는 GPSdata가 없습니다.
+    postGpsData201:
+      properties:
+        gpsDataId:
+          type: string
+          example: 621334fc7d7f986fa9bd3425
+    postGpsData400:
+      properties:
+        message:
+          type: string
+          example: validation error, 올바르지 않은 데이터
+    getTrackRank400:
+      properties:
+        message:
+          type: string
+          example: validator error
+    getTrackRank404:
+      properties:
+        message:
+          type: string
+          example: 해당 트랙이 존재하지 않습니다.
+    getGpsData400:
+      properties:
+        message:
+          type: string
+          example: validation error, 올바르지 않은 데이터.
+    postTrack201:
+      properties:
+        trackId:
+          type: string
+          example: 621334fc7d7f986fa9bd3425
+    postTrack200:
+      properties:
+        message:
+          type: string
+          example: 이미 존재하는 트랙입니다.
+    postTrack400:
+      properties:
+        message:
+          type: string
+          example: validation error
+    getTrackSearch400:
+      properties:
+        message:
+          type: string
+          example: query string validation error
+    getTrackSearch404:
+      properties:
+        message:
+          type: string
+          example: 존재하는 트랙이 없습니다.
+        result:
+          type: array
+          example: []
+    getTrack400:
+      properties:
+        message:
+          type: string
+          example: validation error
+    getTrack404:
+      properties:
+        message:
+          type: string
+          example: 트랙이 존재하지 않습니다.
+    getTrack200:
+      properties:
+        _id:
+          type: string
+          example: 621334fc7d7f986fa9bd3425
+    GPSdataRank:
+      properties:
+        rank:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 621334fc7d7f986fa9bd3425
+              description: GPSdata Id
+            user:
+              properties:
+                userId:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: test
+            totalTime:
+              type: integer
+              example: 500
+            createdAt:
+              type: string
+              example: 2022-02-21T06:45:11.705Z
+        track:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 621334fc7d7f986fa9bd3425
+            trackName:
+              type: string
+              example: 영진전문대 500m
+            totalDistance:
+              type: number
+              example: 0.5(km)
+            user:
+              properties:
+                userId:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: test
+            description:
+              type: string
+              example: 산책하기 좋아요
+            event:
+              type: string
+              example: B
+            checkPoint:
+              type: array
+              example:
+                [
+                  [128.46389651298523, 35.94679607560072],
+                  [128.46373558044434, 35.94685687521724],
+                ]
+            gps:
+              properties:
+                coordinates:
+                  type: array
+                  example:
+                    [
+                      [128.46389651298523, 35.94679607560072],
+                      [128.46373558044434, 35.94685687521724],
+                    ]
+            altitude:
+              type: array
+              example: [1, 2]
+
+            start_latlng:
+              type: array
+              example: [128.46389651298523, 35.94679607560072]
+            end_latlng:
+              type: array
+              example: [128.46373558044434, 35.94685687521724]
+            createdAt:
+              type: string
+              example: "2022-03-21T06:24:11.646Z"

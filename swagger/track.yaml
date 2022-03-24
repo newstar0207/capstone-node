@@ -7,7 +7,7 @@ components:
           example: 영진전문대 500m
         totalDistance:
           type: number
-          example: 500(100미터 이상 저장가능)
+          example: 5( 100(0.1)미터 이상 저장가능 )
         userId:
           type: integer
           example: 1
@@ -20,9 +20,6 @@ components:
         event:
           type: string
           example: B
-        checkPoint:
-          type: array
-          example: [[1, 1], [2, 2]]
         gps:
           type: array
           example: [[1, 1], [2, 2]]
@@ -40,16 +37,3 @@ components:
         - checkPoint
         - gps
         - altitude
-  responses:
-    Track:
-      properties:
-        id:
-          type: string
-          example: 621334fc7d7f986fa9bd3425
-    TrackId:
-      properties:
-        trackId:
-          properties:
-            id:
-              type: string
-              example: 621334fc7d7f986fa9bd3425

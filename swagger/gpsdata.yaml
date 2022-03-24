@@ -2,37 +2,46 @@ components:
   schemas:
     GPSdatas:
       properties:
+        user:
+          properties:
+            userId:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: "김새별"
         trackId:
           type: string
           nullable: true
           example: 621334fc7d7f986fa9bd3425
         gps:
-          type: array
-          example: [[1, 1], [2, 2]]
-        userId:
-          type: integer
-          example: 1
-        name:
-          type: string
-          example: test
+          properties:
+            coordinates:
+              type: array
+              example:
+                [
+                  [128.61303806304932, 35.89588170142396],
+                  [128.61265182495117, 35.89560358073926],
+                ]
+
         speed:
           type: array
-          example: [1, 2]
+          example: [22, 24]
         time:
           type: array
-          example: [1, 2]
+          example: [1, 5]
         distance:
           type: array
-          example: [1, 2]
+          example: [0.1, 1]
         event:
           type: string
           example: R
         altitude:
           type: array
-          example: [1, 2]
+          example: [11, 12]
         totalTime:
           type: integer
-          example: 300
+          example: 6
       required:
         - gps
         - name
@@ -43,76 +52,3 @@ components:
         - event
         - altitude
         - totalTime
-  responses:
-    type: object
-    GPSdataId:
-      properties:
-        gpsDataId:
-          type: object
-          properties:
-            id:
-              type: string
-              example: 621334fc7d7f986fa9bd3425
-    GPSdata:
-      properties:
-        id:
-          type: string
-          example: 621334fc7d7f986fa9bd3425
-    GPSdataRank:
-      properties:
-        rank:
-          type: object
-          properties:
-            _id:
-              type: string
-              example: 621334fc7d7f986fa9bd3425
-              description: GPSdata Id
-            user:
-              properties:
-                userId:
-                  type: integer
-                  example: 1
-                name:
-                  type: string
-                  example: test
-            totalTime:
-              type: integer
-              example: 500
-            createdAt:
-              type: string
-              example: 2022-02-21T06:45:11.705Z
-        track:
-          type: object
-          properties:
-            _id:
-              type: string
-              example: 621334fc7d7f986fa9bd3425
-            name:
-              type: string
-              example: 영진전문대 500m
-            distance:
-              type: number
-              example: 500(km)
-            user:
-              properties:
-                userId:
-                  type: integer
-                  example: 1
-                name:
-                  type: string
-                  example: test
-            description:
-              type: string
-              example: 산책하기 좋아요
-            event:
-              type: string
-              example: bike
-            checkPoint:
-              type: array
-              example: [[1, 1], [2, 2]]
-            coordinates:
-              type: array
-              example: [[1, 1], [2, 2]]
-            altitude:
-              type: array
-              example: [1, 2]
