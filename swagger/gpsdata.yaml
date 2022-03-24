@@ -1,29 +1,24 @@
 components:
   schemas:
-    GPSdatas:
+    GPSdata:
       properties:
-        user:
-          properties:
-            userId:
-              type: integer
-              example: 1
-            name:
-              type: string
-              example: "김새별"
+        userId:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "김새별"
         trackId:
           type: string
           nullable: true
           example: 621334fc7d7f986fa9bd3425
         gps:
-          properties:
-            coordinates:
-              type: array
-              example:
-                [
-                  [128.61303806304932, 35.89588170142396],
-                  [128.61265182495117, 35.89560358073926],
-                ]
-
+          type: array
+          example:
+            [
+              [128.61303806304932, 35.89588170142396],
+              [128.61265182495117, 35.89560358073926],
+            ]
         speed:
           type: array
           example: [22, 24]

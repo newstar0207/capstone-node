@@ -63,7 +63,7 @@ router.get("/", async (req, res, next) => {
  *        content:
  *          application/json:
  *            schema:
- *              $ref: '#/components/schemas/GPSdatas'
+ *              $ref: '#/components/schemas/GPSdata'
  *      responses:
  *        '201':
  *          description: OK
@@ -162,7 +162,7 @@ const checkSpeedBike = (speeds) => {
  *          content:
  *            application/json:
  *              schema:
- *                $ref: '#/components/schemas/GPSdatas'
+ *                $ref: '#/components/responses/GPSdata'
  *        '400':
  *          description: parameter error
  *          content:
