@@ -38,8 +38,8 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(specs, { explorer: true })
 );
-app.use("/api", trackRouter);
-app.use("/api", gpsRouter);
+app.use("/api/tracks", trackRouter);
+app.use("/api/gpsdata", gpsRouter);
 // scheduleJob();
 
 app.get("/", function (req, res) {

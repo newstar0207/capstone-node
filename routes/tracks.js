@@ -1,6 +1,7 @@
 const express = require("express");
 const { body, validationResult, query, param } = require("express-validator");
 const Track = require("../schemas/track");
+const GPSdata = require("../schemas/gpsData");
 const ObjectId = require("mongoose").Types.ObjectId;
 const { checkToken } = require("./middlewares");
 
@@ -15,7 +16,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/track:
+ * /api/tracks:
  *  post:
  *    summary: Add 트랙을 저장하고 ID 를 리턴함
  *    description: 새로운 트랙 생성
@@ -51,7 +52,7 @@ const router = express.Router();
 
 // TODO: 교체하자!!!!!!!
 router.post(
-  "/track",
+  "/",
   body("gps")
     .exists()
     .isArray()
@@ -156,7 +157,7 @@ router.post(
 
 /**
  * @swagger
- * /api/track/search:
+ * /api/tracks/search:
  *  get:
  *    summary: Return 구간에 맞는 트랙을 리턴함
  *    description: 구간에 맞게 특정 범위 안에 있는 트랙 중 길이가 긴 순으로 10개 까지 리턴
@@ -200,7 +201,7 @@ router.post(
 
 // 여러경로 가져오기 (반경계산)
 router.get(
-  "/track/search",
+  "/search",
   query("bounds")
     .exists()
     .isNumeric()
@@ -251,7 +252,7 @@ router.get(
 
 /**
  * @swagger
- * /api/track/{trackId}:
+ * /api/tracks/{trackId}:
  *    get:
  *      summary: Return 특정한 트랙을 리턴함.
  *      description: 특정한 트랙을 리턴함.
@@ -283,7 +284,7 @@ router.get(
  *                $ref: '#/components/responses/getTrack404'
  */
 router.get(
-  "/track/:trackId",
+  "/:trackId",
   param("trackId").custom((value) => {
     if (!ObjectId.isValid(value)) {
       return Promise.reject("잘못된 mongodb ID 입니다.");
@@ -315,7 +316,7 @@ router.get(
 
 /**
  * @swagger
- * /api/track:
+ * /api/tracks:
  *  get:
  *    summary: Retrun 모든트랙의 Id 만 리턴
  *    description: 모든 트랙의 Id 만 리턴함
@@ -336,7 +337,7 @@ router.get(
  *              $ref: '#/components/responses/getTrack404'
  *
  */
-router.get("/track", async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   // 모든 트랙에서 Id 만 리턴
   try {
     const trackId = await Track.find({}).select("id").exec();
@@ -349,5 +350,93 @@ router.get("/track", async (req, res, next) => {
     next(err);
   }
 });
+
+/**
+ *  @swagger
+ *  /api/tracks/{trackId}/ranks:
+ *    get:
+ *      summary: Return 선택한 트랙의 GPSdata를 시간순으로 정렬하고 그 트랙도 같이 리턴
+ *      parameters:
+ *        - in: query
+ *          name: trackId
+ *          required: true
+ *          example: 622561232d6ee07c40f75bda
+ *      tags:
+ *        - tracks
+ *      responses:
+ *        '200':
+ *          description: 검색한 트랙의 결과를 가져옴(gpsData 가 없을 수도 있음 ex) null)
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/responses/GPSdataRank'
+ *        '400':
+ *          description: validator error
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/responses/getTrackRank400'
+ *        '404':
+ *          description: 해당 트랙이 존재하지 않음
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/responses/getTrackRank404'
+ *
+ */
+router.get(
+  "/:trackId/ranks",
+  param("trackId").custom((value) => {
+    if (!ObjectId.isValid(value)) {
+      return Promise.reject("잘못된 mongodb ID 입니다.");
+    } else {
+      return true;
+    }
+  }),
+  (req, res, next) => {
+    // parameter validator
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // gpsdata 찾음
+    const gpsData = GPSdata.find({ trackId: req.params.trackId })
+      .select("user totalTime createdAt")
+      .sort({ totalTime: "asc" })
+      .exec()
+      .then((gpsResult) => {
+        // console.log(gpsResult, "1----");
+        return gpsResult.length ? gpsResult : null;
+      })
+      .catch((err) => {
+        console.log(err);
+        return res.status(404).json({ message: "track 이 존재하지 않음" });
+        // next(err);
+      });
+
+    // track 찾음
+    const trackData = Track.findById(req.params.trackId)
+      .exec()
+      .then((trackResult) => {
+        return trackResult;
+      })
+      .catch((err) => {
+        console.log(err);
+        return res.status(404).json({ message: "track 이 존재하지 않음" });
+        // next(err);
+      });
+
+    // 찾은 track, gpsdata return
+    Promise.all([gpsData, trackData])
+      .then((result) => {
+        console.log(result);
+        return res.status(200).json({ rank: result[0], track: result[1] });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+);
 
 module.exports = router;
