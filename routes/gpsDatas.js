@@ -1,8 +1,10 @@
 const express = require("express");
-const { body, validationResult, query, param } = require("express-validator");
+const { body, validationResult, param } = require("express-validator");
+const ObjectId = require("mongoose").Types.ObjectId;
 const GPSdata = require("../schemas/gpsData");
 const Track = require("../schemas/track");
 const { checkToken } = require("./middlewares");
+
 /**
  * @swagger
  * tags:
@@ -12,22 +14,6 @@ const { checkToken } = require("./middlewares");
 
 const router = express.Router();
 
-// router.get("/test", () => {
-//   console.log("test 실행중.........");
-//   const gpsdatas = GPSdata.aggregate([
-//     {
-//       $group: { _id: "$trackId", count: { $count: {} } },
-//     },
-//   ]);
-//   gpsdatas.exec((err, result) => {
-//     if (err) {
-//       console.log(err);
-//     } else {
-//       console.log(result);
-//     }
-//   });
-// });
-
 /**
  * @swagger
  * /api/gpsdata:
@@ -36,25 +22,32 @@ const router = express.Router();
  *    tags: [GPSdatas]
  *    responses:
  *      '200':
- *        description: OK
+ *        description: array 안 object 입니다.
  *        content:
  *          application/json:
  *            schema:
- *              $ref: '#/components/responses/GPSdataId'
+ *              $ref: '#/components/responses/getGpsData200'
+ *      '404':
+ *        description: GPSdata가 없을 경우
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/responses/getGpsData404'
  */
 
 router.get("/gpsdata", async (req, res, next) => {
-  const gpsDataId = GPSdata.find({}).select("id");
-  gpsDataId.exec((err, result) => {
-    if (err) {
-      return res.status(200).json({ err: err });
+  try {
+    const gpsDataId = await GPSdata.find({}).select("id").exec();
+    if (gpsDataId.length === 0) {
+      return res.status(404).json({ message: "저장된 GPSdata가 없습니다." });
     }
-    if (result.length == 0) {
-      console.log(result.length, "저장되어있는 gpsdata 개수");
-      return res.status(200).json({ message: "존재하는 gpsData가 없습니다." });
-    }
-    return res.status(200).json({ gpsDataId: result });
-  });
+
+    return res.status(200).json(gpsDataId);
+  } catch (err) {
+    // database error
+    console.log(err);
+    next(err);
+  }
 });
 
 /**
@@ -76,7 +69,13 @@ router.get("/gpsdata", async (req, res, next) => {
  *          content:
  *            application/json:
  *              schema:
- *                $ref: '#/components/responses/GPSdata'
+ *                $ref: '#/components/responses/postGpsData201'
+ *        '400':
+ *          description: request body failed
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/responses/postGpsData400'
  */
 
 router.post(
@@ -85,32 +84,32 @@ router.post(
     .exists()
     .isIn(["R", "B"])
     .withMessage({ message: "event 입력 형식이 잘못되었습니다." }),
-  // body("speed") // 거리로 바꾸기
-  //   .exists()
-  //   .custom((speed) => {
-  //     console.log(speed.length);
-  //     if (speed.length <= 2) {
-  //     }
-  //   })
-  //   .withMessage({ message: "speed 입력 형식이 잘못되었습니다." }),
+  body("speed").exists(),
+  body("distance").custom((value) => {
+    // 총 거리를 이용해 validation
+    if (value[value.length - 1] < 0.1) {
+      return Promise.reject("최단거리 100m(0.1) 입니다.");
+    } else {
+      return true;
+    }
+  }),
   async (req, res, next) => {
-    // 속도 체크: 자전거로 달렸을때 속도가 144 이상 나온 경우, 달리기로 44 이상 나온 경우
-
+    // body validator error
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     let checkSpeedResult = false;
-
     if (req.body.event === "R") {
       checkSpeedResult = checkSpeedRun(req.body.speed);
     } else {
       checkSpeedResult = checkSpeedBike(req.body.speed);
     }
 
+    // speed error
     if (checkSpeedResult === false) {
-      return res.json({ message: "올바르지 않은 데이터 입니다." });
+      return res.status(400).json({ message: "잘못된 속도 데이터 입니다." });
     }
 
     try {
@@ -125,15 +124,12 @@ router.post(
         event: req.body.event,
         altitude: req.body.altitude,
       });
-      console.log(gpsData);
-      return res
-        .status(201)
-        .json({ gpsId: gpsData.id, message: "gpsData를 저장합니다." });
+      // created
+      return res.status(201).json({ gpsDataId: gpsData.id });
     } catch (err) {
-      return res.json({
-        message: "gpsData 생성에 실패하였습니다.",
-        error: err.message,
-      });
+      // database error
+      console.log(err);
+      next(err);
     }
   }
 );
@@ -172,51 +168,83 @@ const checkSpeedBike = (speeds) => {
  *        - GPSdatas
  *      responses:
  *        '200':
- *          description: 검색한 트랙의 결과를 가져옴
+ *          description: 검색한 트랙의 결과를 가져옴(gpsData 가 없을 수도 있음 -> null)
  *          content:
  *            application/json:
  *              schema:
  *                $ref: '#/components/responses/GPSdataRank'
+ *        '400':
+ *          description: validator error
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/responses/getTrackRank400'
+ *        '404':
+ *          description: 해당 트랙이 존재하지 않음
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/responses/getTrackRank404'
+ *
  */
 router.get(
   "/track/:trackId/rank",
-  param("trackId")
-    .exists()
-    .withMessage({ message: "trackId의 입력형식이 잘못되었습니다." }),
-  async (req, res, next) => {
+  param("trackId").custom((value) => {
+    if (!ObjectId.isValid(value)) {
+      return Promise.reject("잘못된 mongodb ID 입니다.");
+    } else {
+      return true;
+    }
+  }),
+  (req, res, next) => {
+    // parameter validator
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    try {
-      const TrackResult = await Track.findById(req.params.trackId);
-      const GPSdatas = GPSdata.find({ trackId: req.params.trackId })
-        .select("user totalTime createdAt")
-        .sort({ totalTime: "asc" });
-      GPSdatas.exec((err, result) => {
-        if (err) {
-          console.error(err);
-          next(err);
+    // gpsdata 찾음
+    const gpsData = GPSdata.find({ trackId: req.params.trackId })
+      .select("user totalTime createdAt")
+      .sort({ totalTime: "asc" })
+      .exec()
+      .then((gpsResult) => {
+        // console.log(gpsResult, "1----");
+        if (gpsResult.length === 0) {
+          return null;
         } else {
-          if (result.length == 0) {
-            return res.status(200).json({
-              rank: "gpsData가 존재하지 않습니다.",
-              track: TrackResult,
-            });
-          }
-          return res.status(200).json({ rank: result, track: TrackResult });
+          return gpsResult;
         }
+      })
+      .catch((err) => {
+        console.log(err);
+        return res.status(404).json({ message: "track 이 존재하지 않음" });
+        // next(err);
       });
-    } catch (err) {
-      console.log(err);
-      next(err);
-      // return r
-    }
+
+    // track 찾음
+    const trackData = Track.findById(req.params.trackId)
+      .exec()
+      .then((trackResult) => {
+        return trackResult;
+      })
+      .catch((err) => {
+        console.log(err);
+        return res.status(404).json({ message: "track 이 존재하지 않음" });
+        // next(err);
+      });
+
+    // 찾은 track, gpsdata return
+    Promise.all([gpsData, trackData])
+      .then((result) => {
+        console.log(result);
+        return res.status(200).json({ rank: result[0], track: result[1] });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 );
-
-// TODO: 팔로우 한 사람만 나오는 트랙별 랭킹 (시간 순)
 
 /**
  *  @swagger
@@ -237,36 +265,54 @@ router.get(
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/GPSdatas'
+ *        '400':
+ *          description: parameter error
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/responses/getGpsData400'
+ *        '404':
+ *          description: GPSdata 존재하지 않음
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/responses/getGpsData404'
+ *
  */
 
 router.get(
   "/gpsdata/:gpsdataId",
-  param("gpsdataId")
-    .exists()
-    .withMessage({ message: "gpsdataId 의 입력 형식이 잘못되었습니다." }),
+  param("gpsdataId").custom((value) => {
+    if (!ObjectId.isValid(value)) {
+      return Promise.reject("잘못된 mongodb ID 입니다.");
+    } else {
+      return true;
+    }
+  }),
   async (req, res, next) => {
+    // parameter validator
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     try {
-      const paceMaker = GPSdata.findById(req.params.gpsdataId);
-      paceMaker.exec((err, result) => {
+      const gpsData = GPSdata.findById(req.params.gpsdataId);
+      gpsData.exec((err, result) => {
         if (err) {
           console.error(err);
           next(err);
         } else {
-          console.log(result);
           if (!result) {
             return res
-              .status(200)
+              .status(404)
               .json({ message: "gpsData가 존재하지 않습니다." });
           }
           return res.status(200).json(result);
         }
       });
     } catch (err) {
+      // database error
       console.error(err);
       next(err);
     }
@@ -288,14 +334,25 @@ router.get(
  *      responses:
  *        '200':
  *          description: OK
+ *        '400':
+ *          description: parameter validation
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/responses/getGpsData400'
  */
 
 router.delete(
   "/gpsdata/:gpsdataId",
-  param("gpsdataId")
-    .exists()
-    .withMessage({ message: "gpsdataId 의 입력형식이 잘못되었습니다." }),
+  param("gpsdataId").custom((value) => {
+    if (!ObjectId.isValid(value)) {
+      return Promise.reject("잘못된 mongodb ID 입니다.");
+    } else {
+      return true;
+    }
+  }),
   async (req, res, next) => {
+    // parameter validator
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -305,6 +362,7 @@ router.delete(
       await GPSdata.deleteOne({ id: req.params.gpsdataId });
       res.status(200).json({ message: "gpsData를 삭제하였습니다" });
     } catch (err) {
+      // database error
       console.error(err);
       next(err);
     }

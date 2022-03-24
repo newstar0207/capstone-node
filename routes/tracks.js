@@ -1,6 +1,7 @@
 const express = require("express");
 const { body, validationResult, query, param } = require("express-validator");
 const Track = require("../schemas/track");
+const ObjectId = require("mongoose").Types.ObjectId;
 const { checkToken } = require("./middlewares");
 
 const router = express.Router();
@@ -15,32 +16,40 @@ const router = express.Router();
 /**
  * @swagger
  * /api/track:
- *   post:
- *     summary: Add 트랙을 저장하고 ID 를 리턴함
- *     description: 새로운 트랙 생성
- *     tags:
- *       - tracks
- *     requestBody:
- *       requried: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Track'
- *     responses:
- *       '201':
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/responses/Track'
- *       '200':
- *         description: track exist
+ *  post:
+ *    summary: Add 트랙을 저장하고 ID 를 리턴함
+ *    description: 새로운 트랙 생성
+ *    tags:
+ *      - tracks
+ *    requestBody:
+ *      requried: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            $ref: '#/components/schemas/Track'
+ *    responses:
+ *      '201':
+ *        description: OK
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/responses/postTrack201'
+ *      '200':
+ *        description: 존재하는 track
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/responses/postTrack200'
+ *      '400':
+ *        description: request validation error
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/responses/postTrack400'
+ *
  */
 
-// if (!validationResult(req).isEmpty()) {
-//   return res.status(422).json("잘못된 입력값입니다.");
-// }
-
+// TODO: 교체하자!!!!!!!
 router.post(
   "/track",
   body("gps")
@@ -48,23 +57,26 @@ router.post(
     .isArray()
     .withMessage({ message: "gps 데이터 형식이 잘못되었습니다." }),
   body("totalDistance").custom((value) => {
+    // 총 거리를 이용해 validation
     if (value < 0.1 || typeof value !== "number") {
       return Promise.reject("100m 이상으로 트랙을 생성해 주세요.");
-    } else return true;
+    } else {
+      return true;
+    }
   }),
   async (req, res, next) => {
-    // TODO: 트랙 생성하면서 자신의 gpsdata를 이용해 트랙기록 저장
+    // validation 의 error 가 있을 경우
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    console.log(req.body);
+    // const storeDistance = req.body.totalDistance;
     const storeGPSdate = req.body.gps;
-    const storeDistance = req.body.totalDistance;
     const storeStartGPS = storeGPSdate[0];
     const storeEndGPS = storeGPSdate[storeGPSdate.length - 1];
 
+    // 교차하는 트랙 찾기
     const intersectTrack = Track.find({
       gps: {
         $geoIntersects: {
@@ -79,36 +91,33 @@ router.post(
       if (error) {
         console.error(error);
         next(error);
-        // res.status(500).json({ message: "쿼리에 실패하였습니다." });
       }
+
       // 교차하는 트랙이 없는 경우...
-      console.log(result);
-      if (result.length == 0) {
-        return createTrack(req.body); // 트랙 생성
+      if (result.length === 0) {
+        return createTrack(req.body);
       }
+
       // 교차하는 트랙 중 길이와 좌표 비교...
-      const trackDistanceResult = checkTrackDistance(result);
-      if (!trackDistanceResult) {
+      const checkTrackResult = checkTrackDistanceAndCoordinate(result);
+      if (!checkTrackResult) {
         return res.status(200).json({ message: "이미 존재하는 트랙입니다." });
       }
-      return createTrack(req.body); // 트랙 생성
+      return createTrack(req.body);
     });
 
-    // 트랙 길이를 체크
-    const checkTrackDistance = (result) => {
-      // 교차하는 트랙이 있는 경우 1.길이계산
-      for (let i = 0; i < result.length; i++) {
-        if ((result[i].totalDistance - storeDistance) ** 2 <= 0.011) {
-          // 거리가 비슷
-          // * 100 Math.floor(Num)
+    // 트랙의 전체 거리를 비교하고, 출발지와 목적지 좌표를 비교함
+    const checkTrackDistanceAndCoordinate = (track) => {
+      for (let i = 0; i < track.length; i++) {
+        if ((track[i].totalDistance - req.body.totalDistance) ** 2 <= 0.011) {
           if (
-            Math.floor(result[i].start_latlng[0] * 100) / 100 ==
-              Math.floor(storeStartGPS[0] * 100) / 100 && // 출발지, 목적지 좌표 비교
-            Math.floor(result[i].start_latlng[1] * 100) / 100 ==
+            Math.floor(track[i].start_latlng[0] * 100) / 100 ==
+              Math.floor(storeStartGPS[0] * 100) / 100 &&
+            Math.floor(track[i].start_latlng[1] * 100) / 100 ==
               Math.floor(storeStartGPS[1] * 100) / 100 &&
-            Math.floor(result[i].end_latlng[0] * 100) / 100 ==
+            Math.floor(track[i].end_latlng[0] * 100) / 100 ==
               Math.floor(storeEndGPS[0] * 100) / 100 &&
-            Math.floor(result[i].end_latlng[1] * 100) / 100 ==
+            Math.floor(track[i].end_latlng[1] * 100) / 100 ==
               Math.floor(storeEndGPS[1] * 100) / 100
           ) {
             return false;
@@ -123,24 +132,23 @@ router.post(
         const track = await Track.create({
           trackName: trackInfo.trackName, // 트랙 이름
           totalDistance: parseFloat(trackInfo.totalDistance), // 트랙 전체 거리
-          user: { name: req.body.name, userId: req.body.userId },
+          user: { name: req.body.name, userId: req.body.userId }, //user 정보
           description: trackInfo.description, // 트랙 설명
           event: trackInfo.event, // 종목
           gps: { coordinates: trackInfo.gps }, // gps 좌표
           altitude: trackInfo.altitude, // 고도
           checkPoint: trackInfo.checkPoint, // TODO: 체크포인트
-          start_latlng: storeGPSdate[0],
-          end_latlng: storeGPSdate[storeGPSdate.length - 1],
+          start_latlng: trackInfo.gps[0],
+          end_latlng: trackInfo.gps[trackInfo.gps.length - 1],
         });
-        return res
-          .status(201)
-          .json({ message: "트랙을 생성하였습니다", id: track.id });
+        return res.status(201).json({ trackId: track.id });
       } catch (err) {
         console.log(err);
-        return res.json({
-          message: "트랙생성에 실패하였습니다.",
-          error: err.message,
-        });
+        next(err);
+        // return res.json({
+        //   message: "트랙생성에 실패하였습니다.",
+        //   error: err.message,
+        // });
       }
     };
   }
@@ -149,34 +157,45 @@ router.post(
 /**
  * @swagger
  * /api/track/search:
- *   get:
- *     summary: Return 구간에 맞는 트랙을 리턴함
- *     description: 구간에 맞게 특정 범위 안에 있는 트랙 중 길이가 긴 순으로 10개 까지 리턴
- *     tags:
- *       - tracks
- *     parameters:
- *       - name: bounds
- *         in: query
- *         required: true
- *         description: query string
- *         example: ?bounds=128.59376907348633&bounds=35.87806262146614&bounds=128.63033294677734&bounds=35.89941027276767
- *       - name: zoom
- *         in : query
- *         required: true
- *         description: query string
- *         example: ?zoom=16
- *       - name: event
- *         in : query
- *         required: true
- *         description: query string
- *         example: ?event=R or event=B
- *     responses:
- *       '200':
- *         description: 구간 리턴
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Track'
+ *  get:
+ *    summary: Return 구간에 맞는 트랙을 리턴함
+ *    description: 구간에 맞게 특정 범위 안에 있는 트랙 중 길이가 긴 순으로 10개 까지 리턴
+ *    tags:
+ *      - tracks
+ *    parameters:
+ *      - name: bounds
+ *        in: query
+ *        required: true
+ *        description: query string
+ *        example: ?bounds=128.59376907348633&bounds=35.87806262146614&bounds=128.63033294677734&bounds=35.89941027276767
+ *      - name: zoom
+ *        in : query
+ *        description: query string
+ *        example: ?zoom=16
+ *      - name: event
+ *        in : query
+ *        required: true
+ *        description: query string
+ *        example: ?event=R or event=B
+ *    responses:
+ *      '200':
+ *        description: 구간 리턴
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/responses/getTrackSearch200'
+ *      '400':
+ *        description: query string error
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/responses/getTrackSearch400'
+ *      '404':
+ *        description: 존재하는 트랙 없음
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/responses/getTrackSearch404'
  */
 
 // 여러경로 가져오기 (반경계산)
@@ -191,21 +210,18 @@ router.get(
     .isIn(["R", "B"])
     .withMessage({ messsage: "event가 틀린 데이터 형식입니다." }),
   async (req, res, next) => {
-    const bounds = req.query.bounds;
-    const zoom = req.query.zoom;
-    const event = req.query.event;
-
+    // querystrings validat or
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    console.log(JSON.stringify(bounds));
+    const bounds = req.query.bounds; // 왼쪽 밑, 오른쪽 위 좌표
+    const event = req.query.event; // 현재 이벤트
 
     const tracks = Track.find({
       "gps.coordinates": {
         $geoWithin: {
-          // 왼쪽 밑, 오른쪽 위 좌표 사이의 저장된 문서를 가져옴
           $box: [
             [parseFloat(bounds[0]), parseFloat(bounds[1])],
             [parseFloat(bounds[2]), parseFloat(bounds[3])],
@@ -217,20 +233,18 @@ router.get(
       .where({ event: event })
       .sort({ totalDistance: -1 })
       .exec((error, result) => {
-        // 길이를 기준으로 내림차순이며, 10개로 개수를 제한함.
         // TODO: select 해서 필요한 거만 받기
         if (error) {
           console.log(error);
           next(error);
         }
-        if (result.length == 0) {
-          return res.status(200).json({
+        if (result.length === 0) {
+          return res.status(404).json({
             result: result,
             message: "해당 구간에 존재하는 트랙이 없습니다.",
-            zoom: zoom,
           });
         }
-        res.status(200).json({ result: result, message: "ok", zoom: zoom });
+        return res.status(200).json({ result: result, message: "OK" });
       });
   }
 );
@@ -254,14 +268,31 @@ router.get(
  *          content:
  *            application/json:
  *              schema:
- *                $ref: '#/components/schemas/Track'
+ *                $ref: '#/components/responses/getTrackSearch200'
+ *        '400':
+ *          description: parameter validation error
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/responses/getTrack400'
+ *        '404':
+ *          description: 트랙이 존재하지 않습니다.
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/responses/getTrack404'
  */
 router.get(
   "/track/:trackId",
-  param("trackId")
-    .exists()
-    .withMessage({ message: "trackId 파라미터가 존재하지 않습니다." }),
+  param("trackId").custom((value) => {
+    if (!ObjectId.isValid(value)) {
+      return Promise.reject("잘못된 mongodb ID 입니다.");
+    } else {
+      return true;
+    }
+  }),
   async (req, res, next) => {
+    // parameter validator
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -270,13 +301,14 @@ router.get(
     try {
       const track = await Track.findById(req.params.trackId);
       if (track) {
-        console.log("GET track...", track);
         res.status(200).json(track);
       } else {
-        res.status(200).json({ message: "track이 존재하지 않습니다." });
+        res.status(404).json({ message: "track이 존재하지 않습니다." });
       }
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      console.log(err);
+      next(err);
+      // res.status(500).json({ message: err.message });
     }
   }
 );
@@ -291,21 +323,31 @@ router.get(
  *      - tracks
  *    responses:
  *      '200':
- *        description: OK
+ *        description: array 안에 object 입니다.
  *        content:
  *          application/json:
  *            schema:
- *              $ref: '#/components/responses/TrackId'
+ *              $ref: '#/components/responses/getTrack200'
+ *      '404':
+ *        description: 트랙이 존재하지 않음
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/responses/getTrack404'
+ *
  */
 router.get("/track", async (req, res, next) => {
   // 모든 트랙에서 Id 만 리턴
-  const track = Track.find({}).select("id");
-  track.exec((err, result) => {
-    if (err) {
-      return res.json({ message: "쿼리에 실패하였습니다." });
+  try {
+    const trackId = await Track.find({}).select("id").exec();
+    if (trackId.length === 0) {
+      return res.status(404).json({ message: "트랙이 존재하지 않습니다." });
     }
-    return res.json({ trackId: result });
-  });
+    return res.status(200).json(trackId);
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
 });
 
 module.exports = router;

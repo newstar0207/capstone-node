@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const nunjucks = require("nunjucks");
 const dotenv = require("dotenv");
 const { swaggerUi, specs } = require("./swagger/Swagger");
+const { scheduleJob } = require("./schedule"); // schedule (트랙 사용자 없으면 삭제하기 위함)
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use(
 );
 app.use("/api", trackRouter);
 app.use("/api", gpsRouter);
+// scheduleJob();
 
 app.get("/", function (req, res) {
   console.log(req);
@@ -48,14 +50,15 @@ app.get("/", function (req, res) {
 app.use((req, res, next) => {
   const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
   error.status = 404;
-  next(error);
+  res.status(404).json({ message: error });
 });
 
 app.use((err, req, res, next) => {
-  res.locals.message = err.message;
-  res.locals.error = process.env.NODE_ENV !== "production" ? err : {};
-  res.status(err.status || 500);
-  res.render("error");
+  // res.locals.message = err.message;
+  // res.locals.error = process.env.NODE_ENV !== "production" ? err : {};
+  // res.status(err.status || 500);
+  // res.render("error");
+  res.status(503).json({ message: "mongodb error" });
 });
 
 app.listen(app.get("port"), () => {
