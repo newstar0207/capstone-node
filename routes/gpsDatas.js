@@ -1,6 +1,6 @@
 const express = require("express");
 const { body, validationResult, param } = require("express-validator");
-const ExerciseRecord = require("../models/ExerciseRecord");
+const ActivityRecord = require("../models/ActivityRecord");
 const ObjectId = require("mongoose").Types.ObjectId;
 const GPSdata = require("../schemas/gpsData");
 const EventType = require("../types/EventType");
@@ -100,12 +100,12 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const exerciseRecord = new ExerciseRecord(req.body);
+    const storeActivityRecord = new ActivityRecord(req.body);
 
     const checkSpeedResult =
-      exerciseRecord.event === EventType.RIDING
-        ? checkSpeedRun(exerciseRecord.speed)
-        : checkSpeedBike(exerciseRecord.speed);
+      storeActivityRecord.event === EventType.RIDING
+        ? checkSpeedRun(storeActivityRecord.speed)
+        : checkSpeedBike(storeActivityRecord.speed);
 
     // speed error
     if (!checkSpeedResult) {
@@ -113,7 +113,7 @@ router.post(
     }
 
     try {
-      const gpsData = await GPSdata.create(exerciseRecord);
+      const gpsData = await GPSdata.create(storeActivityRecord);
       // created
       return res.status(201).json({ gpsDataId: gpsData.id });
     } catch (err) {
@@ -183,9 +183,8 @@ router.get(
   param("gpsdataId").custom((value) => {
     if (!ObjectId.isValid(value)) {
       return Promise.reject("잘못된 mongodb ID 입니다.");
-    } else {
-      return true;
     }
+    return true;
   }),
   async (req, res, next) => {
     // parameter validator
@@ -244,9 +243,8 @@ router.delete(
   param("gpsdataId").custom((value) => {
     if (!ObjectId.isValid(value)) {
       return Promise.reject("잘못된 mongodb ID 입니다.");
-    } else {
-      return true;
     }
+    return true;
   }),
   async (req, res, next) => {
     // parameter validator

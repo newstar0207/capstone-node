@@ -1,4 +1,4 @@
-class ExerciseRecord {
+class ActivityRecord {
   constructor({
     trackId,
     name,
@@ -23,4 +23,4 @@ class ExerciseRecord {
   }
 }
 
-module.exports = ExerciseRecord;
+module.exports = ActivityRecord;

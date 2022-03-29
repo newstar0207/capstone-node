@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser");
 const nunjucks = require("nunjucks");
 const dotenv = require("dotenv");
 const { swaggerUi, specs } = require("./swagger/Swagger");
-const { scheduleJob } = require("./schedule"); // schedule (트랙 사용자 없으면 삭제하기 위함)
+// const { scheduleJob } = require("./schedule"); // schedule (트랙 사용자 없으면 삭제하기 위함)
 
 dotenv.config();
 
