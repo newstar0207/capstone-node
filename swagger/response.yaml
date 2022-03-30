@@ -190,18 +190,23 @@ components:
         rank:
           type: object
           properties:
-            _id:
+            gpsDataId:
               type: string
               example: 621334fc7d7f986fa9bd3425
-              description: GPSdata Id
-            user:
+            _id:
+              type: object
               properties:
-                userId:
-                  type: integer
-                  example: 1
-                name:
-                  type: string
-                  example: test
+                user:
+                  properties:
+                    userId:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: test
+            avgSpeed:
+              type: array
+              example: 43.33423
             totalTime:
               type: integer
               example: 500

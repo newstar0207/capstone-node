@@ -49,7 +49,7 @@ const router = express.Router();
  *            schema:
  *              $ref: '#/components/responses/postTrack400'
  *
- */  
+ */
 
 router.post(
   "/",
@@ -107,7 +107,7 @@ router.post(
     const checkTrackDistanceAndCoordinate = (resultTrack) => {
       for (let i = 0; i < resultTrack.length; i++) {
         if (
-          (resultTrack[i].totalDistance - req.body.totalDistance) ** 2 <=
+          (resultTrack[i].totalDistance - storeTrack.totalDistance) ** 2 <=
           0.011
         ) {
           if (
@@ -226,7 +226,7 @@ router.get(
           console.log(error);
           next(error);
         }
-        if (result.length === 0) {
+        if (!result) {
           return res.status(404).json({
             result: result,
             message: "해당 구간에 존재하는 트랙이 없습니다.",
@@ -328,7 +328,7 @@ router.get("/", async (req, res, next) => {
   // 모든 트랙에서 Id 만 리턴
   try {
     const trackId = await Track.find({}).select("id").exec();
-    if (trackId.length === 0) {
+    if (!trackId) {
       return res.status(404).json({ message: "트랙이 존재하지 않습니다." });
     }
     return res.status(200).json(trackId);
@@ -376,9 +376,8 @@ router.get(
   param("trackId").custom((value) => {
     if (!ObjectId.isValid(value)) {
       return Promise.reject("잘못된 mongodb ID 입니다.");
-    } else {
-      return true;
     }
+    return true;
   }),
   (req, res, next) => {
     // parameter validator
@@ -387,38 +386,61 @@ router.get(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // gpsdata 찾음
-    const gpsData = GPSdata.find({ trackId: req.params.trackId })
-      .select("user totalTime createdAt speed")
-      .sort({ totalTime: "asc" })
-      .exec()
-      .then((gpsResult) => {
-        // console.log(gpsResult, "1----");
-        return gpsResult.length ? gpsResult : null;
-      })
-      .catch((err) => {
-        console.log(err);
-        return res.status(404).json({ message: "track 이 존재하지 않음" });
-        // next(err);
-      });
+    /*
+    1. 트랙아이디로 트랙을 찾음
+    2. 전체 걸린 시간을 기준으로 오름차순 정렬
+    3. userId를 기준으로 그룹화
+    4. 그룹하면서 totaltime, avgspeed를 구함
+    */
+    const gpsDataRank = () =>
+      GPSdata.aggregate([
+        {
+          $match: { trackId: ObjectId(req.params.trackId) },
+        },
+        {
+          $sort: { totalTime: 1 },
+        },
+        {
+          $group: {
+            _id: { user: "$user" },
+            totalTime: { $first: "$totalTime" },
+            avgSpeed: { $first: { $avg: "$speed" } },
+            gpsDataId: { $first: "$_id" },
+            createdAt: { $first: "$createdAt" },
+          },
+        },
+      ])
+        .exec()
+        .then((rank) => {
+          console.log("rank 찾음", rank);
+          return rank.length ? rank : null;
+        })
+        .catch((err) => {
+          console.log(err);
+          next();
+        });
 
     // track 찾음
-    const trackData = Track.findById(req.params.trackId)
-      .exec()
-      .then((trackResult) => {
-        return trackResult;
-      })
-      .catch((err) => {
-        console.log(err);
-        return res.status(404).json({ message: "track 이 존재하지 않음" });
-        // next(err);
-      });
+    const trackData = () =>
+      Track.findById(req.params.trackId)
+        .exec()
+        .then((trackResult) => {
+          if (!trackResult) {
+            return res.status(404).json({ message: "track 이 존재하지 않음" });
+          }
+          console.log("track 찾음", trackResult);
+          return trackResult;
+        })
+        .catch((err) => {
+          console.log(err);
+          next(err);
+        });
 
     // 찾은 track, gpsdata return
-    Promise.all([gpsData, trackData])
+    Promise.all([trackData(), gpsDataRank()])
       .then((result) => {
         console.log(result);
-        return res.status(200).json({ rank: result[0], track: result[1] });
+        return res.status(200).json({ track: result[0], rank: result[1] });
       })
       .catch((err) => {
         console.log(err);

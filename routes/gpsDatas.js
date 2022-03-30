@@ -201,9 +201,7 @@ router.get(
           next(err);
         }
         if (!result) {
-          return res
-            .status(404)
-            .json({ message: "gpsData가 존재하지 않습니다." });
+          return res.status(404).json({ message: "gpsData가 존재하지 않습니다." });
         }
         return res.status(200).json(result);
       });
