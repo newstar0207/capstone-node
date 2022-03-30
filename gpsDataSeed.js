@@ -323,7 +323,7 @@ const connect = () => {
   }
 
   mongoose.connect(
-    process.env.MONGO_CONFIG,
+    process.env.MONGO_URL,
     {
       dbName: "gps",
       useNewUrlParser: true,

@@ -6,7 +6,8 @@ const connect = () => {
   }
 
   mongoose.connect(
-    process.env.MONGO_CONFIG,
+    process.env.MONGO_URL,
+    // process.env.MONGO_CONFIG,
     {
       dbName: "gps",
       useNewUrlParser: true,
