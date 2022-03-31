@@ -86,13 +86,13 @@ router.post(
     .isIn([EventType.RIDING, EventType.BIKE])
     .withMessage({ message: "event 입력 형식이 잘못되었습니다." }),
   body("speed").exists(),
-  body("distance").custom((value) => {
-    // 총 거리를 이용해 validation
-    if (value[value.length - 1] < 0.1) {
-      return Promise.reject("최단거리 100m(0.1) 입니다.");
-    }
-    return true;
-  }),
+  // body("distance").custom((value) => {
+  //   // 총 거리를 이용해 validation
+  //   if (value[value.length - 1] < 0.1) {
+  //     return Promise.reject("최단거리 100m(0.1) 입니다.");
+  //   }
+  //   return true;
+  // }),
   async (req, res, next) => {
     // body validator error
     const errors = validationResult(req);
