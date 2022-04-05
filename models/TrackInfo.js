@@ -18,8 +18,8 @@ class TrackInfo {
     this.gps = { coordinates: gps };
     this.altitude = altitude;
     this.checkPoint = checkPoint;
-    this.start_latlng = gps[0];
-    this.end_latlng = gps[gps.length - 1];
+    this.start_latlng = { coordinates: gps[0] };
+    this.end_latlng = { coordinates: gps[gps.length - 1] };
   }
 }
 
