@@ -1,10 +1,9 @@
 const express = require("express");
 const { body, validationResult, query, param } = require("express-validator");
 const Track = require("../schemas/track");
-const GPSdata = require("../schemas/gpsData");
+// const GPSdata = require("../schemas/gpsData");
 const ObjectId = require("mongoose").Types.ObjectId;
 const TrackInfo = require("../models/TrackInfo");
-// const { checkToken } = require("./middlewares");
 
 const router = express.Router();
 
@@ -73,59 +72,67 @@ router.post(
 
     const storeTrack = new TrackInfo(req.body);
 
-    // 교차하는 트랙 찾기
-    const intersectTrack = Track.find({
-      gps: {
-        $geoIntersects: {
-          $geometry: {
-            type: "LineString",
-            coordinates: storeTrack.gps.coordinates,
-          },
+    const trackDuplicateCheck = Track.aggregate([
+      {
+        $match: {
+          $and: [
+            { event: storeTrack.event }, // 이벤트 체크
+            {
+              // 출발지 좌표 체크
+              start_latlng: {
+                $geoWithin: {
+                  $centerSphere: [storeTrack.start_latlng.coordinates, 0.1 / 6378.1], // 100m
+                },
+              },
+            },
+            {
+              // 도착지 좌표 체크
+              end_latlng: {
+                $geoWithin: {
+                  $centerSphere: [storeTrack.end_latlng.coordinates, 0.1 / 6378.1], // 100m
+                },
+              },
+            },
+            {
+              // 총 거리 비교 distance - 0.11 < totalDistance < distance + 0.11
+              $and: [
+                {
+                  totalDistance: { $gt: storeTrack.totalDistance - 0.1 },
+                },
+                {
+                  totalDistance: { $lt: storeTrack.totalDistance + 0.1 },
+                },
+              ],
+            },
+          ],
         },
       },
-    });
-    intersectTrack.exec(async (error, result) => {
-      if (error) {
-        console.error(error);
-        next(error);
-      }
+      {
+        // 특정 필드 값만 리턴
+        $project: {
+          _id: 0,
+          trackName: 1,
+          totalDistance: 1,
+          event: 1,
+          "start_latlng.coordinates": 1,
+          "end_latlng.coordinates": 1,
+        },
+      },
+    ]).exec();
 
-      // 교차하는 트랙이 없는 경우...
-      if (!result) {
-        return createTrack(storeTrack);
-      }
-
-      // 교차하는 트랙 중 길이와 좌표 비교...
-      const checkTrackResult = checkTrackDistanceAndCoordinate(result);
-      if (!checkTrackResult) {
-        return res.status(200).json({ message: "이미 존재하는 트랙입니다." });
-      }
-      return createTrack(storeTrack);
-    });
-
-    // 트랙의 전체 거리를 비교하고, 출발지와 목적지 좌표를 비교함
-    const checkTrackDistanceAndCoordinate = (resultTrack) => {
-      for (let i = 0; i < resultTrack.length; i++) {
-        if (
-          (resultTrack[i].totalDistance - storeTrack.totalDistance) ** 2 <=
-          0.011
-        ) {
-          if (
-            Math.floor(resultTrack[i].start_latlng[0] * 100) / 100 ==
-              Math.floor(storeTrack.start_latlng[0] * 100) / 100 &&
-            Math.floor(resultTrack[i].start_latlng[1] * 100) / 100 ==
-              Math.floor(storeTrack.start_latlng[1] * 100) / 100 &&
-            Math.floor(resultTrack[i].end_latlng[0] * 100) / 100 ==
-              Math.floor(storeTrack.end_latlng[0] * 100) / 100 &&
-            Math.floor(resultTrack[i].end_latlng[1] * 100) / 100 ==
-              Math.floor(storeTrack.end_latlng[1] * 100) / 100
-          ) {
-            return false;
-          }
+    trackDuplicateCheck
+      .then((result) => {
+        console.log(result, "track duplicate check result...");
+        if (!result.length) {
+          return createTrack(storeTrack);
+        } else {
+          return res.status(200).json({ message: "이미 존재하는 트랙입니다." });
         }
-      }
-      return true;
-    };
+      })
+      .catch((err) => {
+        console.error(err);
+        next(err);
+      });
 
     // 트랙 생성
     const createTrack = async (storeTrack) => {
@@ -203,7 +210,7 @@ router.get(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-
+    // TODO: 필요한 것 만 따로 얻어서 aggregate 로 바꾸기
     const bounds = req.query.bounds; // 왼쪽 밑, 오른쪽 위 좌표
     const event = req.query.event; // 현재 이벤트
 
@@ -339,7 +346,7 @@ router.get("/", async (req, res, next) => {
 });
 
 /**
- *  @swagger
+ *
  *  /api/tracks/{trackId}/ranks:
  *    get:
  *      summary: Return 선택한 트랙의 GPSdata를 시간순으로 정렬하고 그 트랙도 같이 리턴
@@ -371,81 +378,94 @@ router.get("/", async (req, res, next) => {
  *                $ref: '#/components/responses/getTrackRank404'
  *
  */
-router.get(
-  "/:trackId/ranks",
-  param("trackId").custom((value) => {
-    if (!ObjectId.isValid(value)) {
-      return Promise.reject("잘못된 mongodb ID 입니다.");
-    }
-    return true;
-  }),
-  (req, res, next) => {
-    // parameter validator
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+// router.get(
+//   // query string page 넣기
+//   "/:trackId/ranks",
+//   param("trackId").custom((value) => {
+//     if (!ObjectId.isValid(value)) {
+//       return Promise.reject("잘못된 mongodb ID 입니다.");
+//     }
+//     return true;
+//   }),
+//   query("page").isNumeric().withMessage({ messsage: "page가 존재하지 않습니다." }),
+//   (req, res, next) => {
+//     // parameter validator
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ errors: errors.array() });
+//     }
 
-    /*
+//     const currentPage = req.query.page ? 0 : req.query.page;
+
+/*
     1. 트랙아이디로 트랙을 찾음
     2. 전체 걸린 시간을 기준으로 오름차순 정렬
     3. userId를 기준으로 그룹화
     4. 그룹하면서 totaltime, avgspeed를 구함
+    5. 페이지 네이션 
     */
-    const gpsDataRank = () =>
-      GPSdata.aggregate([
-        {
-          $match: { trackId: ObjectId(req.params.trackId) },
-        },
-        {
-          $sort: { totalTime: 1 },
-        },
-        {
-          $group: {
-            _id: { user: "$user" },
-            totalTime: { $first: "$totalTime" },
-            avgSpeed: { $first: { $avg: "$speed" } },
-            gpsDataId: { $first: "$_id" },
-            createdAt: { $first: "$createdAt" },
-          },
-        },
-      ])
-        .exec()
-        .then((rank) => {
-          console.log("rank 찾음", rank);
-          return rank.length ? rank : null;
-        })
-        .catch((err) => {
-          console.log(err);
-          next();
-        });
+// const gpsDataRank = () =>
+//   GPSdata.aggregate([
+//     {
+//       $match: { trackId: ObjectId(req.params.trackId) },
+//     },
+//     {
+//       $sort: { totalTime: 1 },
+//     },
+//     {
+//       $group: {
+//         _id: { user: "$user" },
+//         totalTime: { $first: "$totalTime" },
+//         avgSpeed: { $first: { $avg: "$speed" } },
+//         gpsDataId: { $first: "$_id" },
+//         createdAt: { $first: "$createdAt" },
+//       },
+//     },
+//     {
+//       // 페이지네이션
+//       $facet: {
+//         metaData: [{ $count: "count" }, { $addFields: { page: currentPage } }],
+//         rank: [{ $skip: currentPage * 2 }, { $limit: 2 }],
+//       },
+//     },
+//   ])
+// .exec()
+// .then((rank) => {
+//   console.log("rank 찾음", rank);
+//   return res.status(200).json(rank);
+//   // return rank.length ? rank : null;
+// })
+// .catch((err) => {
+//   console.log(err);
+//   next();
+// });
 
-    // track 찾음
-    const trackData = () =>
-      Track.findById(req.params.trackId)
-        .exec()
-        .then((trackResult) => {
-          if (!trackResult) {
-            return res.status(404).json({ message: "track 이 존재하지 않음" });
-          }
-          console.log("track 찾음", trackResult);
-          return trackResult;
-        })
-        .catch((err) => {
-          console.log(err);
-          next(err);
-        });
+// track 찾음
+// const trackData = () =>
+//   Track.findById(req.params.trackId)
+//     .exec()
+//     .then((trackResult) => {
+//       if (!trackResult) {
+//         return res.status(404).json({ message: "track 이 존재하지 않음" });
+//       }
+//       console.log("track 찾음", trackResult);
+//       return trackResult;
+//     })
+//     .catch((err) => {
+//       console.log(err);
+//       next(err);
+//     });
 
-    // 찾은 track, gpsdata return
-    Promise.all([trackData(), gpsDataRank()])
-      .then((result) => {
-        console.log(result);
-        return res.status(200).json({ track: result[0], rank: result[1] });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-);
+// 찾은 track, gpsdata return
+// Promise.all([trackData(), gpsDataRank()])
+//   .then((result) => {
+//     console.log(result);
+//     return res.status(200).json({ track: result[0], rank: result[1] });
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });
+//   }
+// );
 
 module.exports = router;
