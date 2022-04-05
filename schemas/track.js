@@ -12,6 +12,18 @@ const lineStringSchema = new mongoose.Schema({
   },
 });
 
+const pointSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ["Point"],
+    default: "Point",
+  },
+  coordinates: {
+    type: [Number],
+    default: "Point",
+  },
+});
+
 const { Schema } = mongoose;
 const trackSchema = new Schema({
   trackName: {
@@ -59,13 +71,22 @@ const trackSchema = new Schema({
     type: Array,
     required: true,
   },
-  start_latlng: {
-    type: ["Point"],
+  slope: {
+    // 경사도
+    type: Array,
     required: true,
   },
-  end_latlng: {
-    type: ["Point"],
+  avgSlope: {
+    type: Number,
     required: true,
+  },
+  start_latlng: {
+    type: pointSchema,
+    index: "2dsphere",
+  },
+  end_latlng: {
+    type: pointSchema,
+    index: "2dsphere",
   },
 });
 
