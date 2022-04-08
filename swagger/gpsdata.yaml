@@ -37,12 +37,7 @@ components:
         totalTime:
           type: integer
           example: 6
-        slope:
-          type: array
-          example: [1, 2]
-        avgSlope:
-          type: number
-          example: 1.5
+
       required:
         - gps
         - name
@@ -53,5 +48,3 @@ components:
         - event
         - altitude
         - totalTime
-        - slope
-        - avgSlope
