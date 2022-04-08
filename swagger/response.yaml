@@ -1,5 +1,33 @@
 components:
   responses:
+    getGpsCheck404:
+      properties:
+        message:
+          type: string
+          example: 일치하는 트랙 없음
+    getGpsCheck200:
+      properties:
+        track:
+          properties:
+            _id:
+              type: string
+              example: 621334fc7d7f986fa9bd3425
+            totalDistance:
+              type: number
+              example: 1
+            gps:
+              properties:
+                type:
+                  type: string
+                  example: "Linestring"
+                coordinates:
+                  type: array
+                  example:
+                    [
+                      [128.61303806304932, 35.89588170142396],
+                      [128.61265182495117, 35.89560358073926],
+                    ]
+
     GPSdata:
       properties:
         user:
