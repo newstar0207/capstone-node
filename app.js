@@ -33,11 +33,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
-app.use(
-  "/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(specs, { explorer: true })
-);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 app.use("/api/tracks", trackRouter);
 app.use("/api/gpsdata", gpsRouter);
 // scheduleJob();
@@ -58,6 +54,7 @@ app.use((err, req, res, next) => {
   // res.locals.error = process.env.NODE_ENV !== "production" ? err : {};
   // res.status(err.status || 500);
   // res.render("error");
+  console.log(err);
   res.status(503).json({ message: "mongodb error" });
 });
 

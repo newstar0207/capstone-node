@@ -26,6 +26,12 @@ components:
         altitude:
           type: array
           example: [1, 2]
+        slope:
+          type: array
+          example: [1, 2]
+        avgSlope:
+          type: number
+          example: 1.5
       required:
         - name
         - totalDistance
@@ -37,3 +43,5 @@ components:
         - checkPoint
         - gps
         - altitude
+        - slope
+        - avgSlope

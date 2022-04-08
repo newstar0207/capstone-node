@@ -369,40 +369,6 @@ router.get(
       console.log(err);
       next(err);
     }
-
-    const gpsData = async () =>
-      await GPSdata.findById()
-        .exec()
-        .then((result) => {
-          console.log(result);
-          if (!result)
-            return res.status(404).json({ message: "저장된 gpsdata가 없습니다." });
-        })
-        .catch((err) => {
-          console.log(err);
-          next(err);
-        });
-
-    const InterSectTrack = async () =>
-      await Track.find({
-        "gps.coordinates": {
-          $geoIntersects: {
-            $geometry: {
-              type: "LineString",
-              coordinates: gpsData.gps.coordinates,
-            },
-          },
-        },
-      })
-        .exec()
-        .then((result) => {
-          if (!result)
-            return res.status(404).json({ message: "교차하는 트랙이 없음" });
-        })
-        .catch((err) => {
-          console.log(err);
-          next(err);
-        });
   }
 );
 

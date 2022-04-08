@@ -70,6 +70,12 @@ components:
         totalTime:
           type: integer
           example: 6
+        slope:
+          type: array
+          example: [1, 2]
+        avgSlope:
+          type: number
+          example: 1.5
       required:
         - gps
         - name
@@ -80,6 +86,8 @@ components:
         - event
         - altitude
         - totalTime
+        - slope
+        - avgSlope
 
     getTrackSearch200:
       properties:
@@ -131,6 +139,12 @@ components:
         altiitude:
           type: array
           example: [11, 12]
+        slope:
+          type: array
+          example: [1, 2]
+        avgSlope:
+          type: number
+          example: 1.5
         createdAt:
           type: string
           example: 2022-03-21T06:24:11.650Z
