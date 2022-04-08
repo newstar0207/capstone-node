@@ -350,16 +350,27 @@ router.get(
       if (!gpsData)
         return res.status(404).json({ message: "저장된 gpsdata가 없습니다." });
       // console.log(gpsData);
-      const InterSectTrack = await Track.find({
-        "gps.coordinates": {
-          $geoIntersects: {
-            $geometry: {
-              type: "LineString",
-              coordinates: gpsData.gps.coordinates,
+      const InterSectTrack = await Track.aggregate([
+        { $match: { event: gpsData.event } },
+        {
+          $match: {
+            "gps.coordinates": {
+              $geoIntersects: {
+                $geometry: {
+                  type: "LineString",
+                  coordinates: gpsData.gps.coordinates,
+                },
+              },
             },
           },
         },
-      }).select("gps totalDistance");
+        {
+          $project: {
+            gps: 1,
+            totalDistance: 1,
+          },
+        },
+      ]);
       if (!InterSectTrack.length)
         return res.status(404).json({ message: "교차하는 track이 없습니다." });
       console.log(InterSectTrack);

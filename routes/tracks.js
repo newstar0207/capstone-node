@@ -302,7 +302,6 @@ router.get(
     } catch (err) {
       console.log(err);
       next(err);
-      // res.status(500).json({ message: err.message });
     }
   }
 );
