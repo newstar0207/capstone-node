@@ -62,15 +62,7 @@ const gpsDataSchema = new Schema({
     type: Array,
     required: true,
   },
-  slope: {
-    // 경사도
-    type: Array,
-    required: true,
-  },
-  avgSlope: {
-    type: Number,
-    required: true,
-  },
+
   totalTime: {
     type: Number,
     required: true,
