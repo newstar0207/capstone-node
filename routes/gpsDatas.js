@@ -57,10 +57,7 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const storeActivityRecord = new ActivityRecord(
-      req.body,
-      calculateSlope(req.body)
-    );
+    const storeActivityRecord = new ActivityRecord(req.body);
     // console.log(storeActivityRecord);
 
     const checkSpeedResult =
@@ -85,19 +82,19 @@ router.post(
   }
 );
 
-const calculateSlope = ({ distance, altitude }) => {
-  const slope = distance.map((item, i) => {
-    if (!i) return 0;
-    if (altitude[i] === altitude[i - 1] || distance[i] === distance[i - 1]) return 0;
-    return (
-      Math.floor(
-        ((altitude[i] - altitude[i - 1]) / (distance[i] - distance[i - 1])) * 10000
-      ) / 100
-    );
-  });
-  console.log(slope);
-  return slope;
-};
+// const calculateSlope = ({ distance, altitude }) => {
+//   const slope = distance.map((item, i) => {
+//     if (!i) return 0;
+//     if (altitude[i] === altitude[i - 1] || distance[i] === distance[i - 1]) return 0;
+//     return (
+//       Math.floor(
+//         ((altitude[i] - altitude[i - 1]) / (distance[i] - distance[i - 1])) * 10000
+//       ) / 100
+//     );
+//   });
+//   console.log(slope);
+//   return slope;
+// };
 
 // 거리계산
 // const distance = (lat1, lon1, lat2, lon2) => {
