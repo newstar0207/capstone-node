@@ -13,6 +13,33 @@ const router = express.Router();
  *    description: 트랙에 관련한 API
  */
 
+const calculateSlope = ({ gps, altitude }) => {
+  /*
+    1. 트랙에서 평균 거리만 구하고 싶음
+    2. gps 좌표사이사이의 거리를 sum으로 계산하여 더해가야함.
+    3. avgslope에 저장함
+  */
+  const distance = gps.map((item, i) => {
+    if (!i) return 0;
+    const Radius = 6371e3; // metres
+    const φ1 = (gps[i - 1][1] * Math.PI) / 180; // φ, λ in radians
+    const φ2 = (item[1] * Math.PI) / 180;
+    const Δφ = ((item[1] - gps[i - 1][1]) * Math.PI) / 180;
+    const Δλ = ((item[0] - gps[i - 1][0]) * Math.PI) / 180;
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = Radius * c; // in metres
+    return ((altitude[i] - altitude[i - 1]) / d) * 100;
+  });
+  return (
+    Math.floor(
+      (distance.reduce((sum, item) => sum + item, 0) / distance.length) * 10
+    ) / 10
+  );
+};
+
 /**
  * @swagger
  * /api/tracks:
@@ -69,7 +96,12 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const storeTrack = new TrackInfo(req.body);
+    const avgSlope = calculateSlope(req.body);
+    console.log(avgSlope);
+
+    const storeTrack = new TrackInfo(req.body, avgSlope);
+
+    // return res.json(storeTrack);
 
     const trackDuplicateCheck = Track.aggregate([
       {
