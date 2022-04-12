@@ -9,8 +9,6 @@ class TrackInfo {
     gps,
     altitude,
     checkPoint,
-    slope,
-    avgSlope,
   }) {
     this.trackName = trackName;
     this.totalDistance = totalDistance;
@@ -22,9 +20,8 @@ class TrackInfo {
     this.checkPoint = checkPoint;
     this.start_latlng = { coordinates: gps[0] };
     this.end_latlng = { coordinates: gps[gps.length - 1] };
-    this.slope = slope;
-    this.avgSlope = avgSlope;
+    this.avgSlope = 0;
   }
 }
-
+// this.avgSlope = slope.reduce((sum, item) => sum + item, 0) / slope.length;
 module.exports = TrackInfo;
