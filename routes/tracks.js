@@ -22,7 +22,9 @@ const calculateSlope = ({ gps, altitude }) => {
   const distance = gps.map((item, i) => {
     if (!i) return 0;
     const Radius = 6371e3; // metres
-    const φ1 = (gps[i - 1][1] * Math.PI) / 180; // φ, λ in radians
+
+    // 좌표를 라디안 단위로 변환
+    const φ1 = (gps[i - 1][1] * Math.PI) / 180; // φ(위도), λ(경도) in radians
     const φ2 = (item[1] * Math.PI) / 180;
     const Δφ = ((item[1] - gps[i - 1][1]) * Math.PI) / 180;
     const Δλ = ((item[0] - gps[i - 1][0]) * Math.PI) / 180;
@@ -125,13 +127,13 @@ router.post(
               },
             },
             {
-              // 총 거리 비교 distance - 0.11 < totalDistance < distance + 0.11
+              // 총 거리 비교 distance - 100 < totalDistance < distance + 100
               $and: [
                 {
-                  totalDistance: { $gt: storeTrack.totalDistance - 0.1 },
+                  totalDistance: { $gt: storeTrack.totalDistance - 100 },
                 },
                 {
-                  totalDistance: { $lt: storeTrack.totalDistance + 0.1 },
+                  totalDistance: { $lt: storeTrack.totalDistance + 100 },
                 },
               ],
             },
