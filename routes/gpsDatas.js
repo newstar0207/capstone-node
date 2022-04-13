@@ -369,10 +369,10 @@ router.get(
         },
       ]);
       if (!InterSectTrack.length)
-        return res.status(404).json({ message: "교차하는 track이 없습니다." });
+        return res.status(200).json({ track: null, gpsData: gpsData });
       console.log(InterSectTrack);
 
-      return res.status(200).json({ track: InterSectTrack });
+      return res.status(200).json({ track: InterSectTrack, gpsData: gpsData });
     } catch (err) {
       console.log(err);
       next(err);
