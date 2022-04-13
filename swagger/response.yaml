@@ -27,6 +27,43 @@ components:
                       [128.61303806304932, 35.89588170142396],
                       [128.61265182495117, 35.89560358073926],
                     ]
+        gpsData:
+          properties:
+            user:
+              properties:
+                userId:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "김새별"
+            gps:
+              properties:
+                coordinates:
+                  type: array
+                  example:
+                    [
+                      [128.61303806304932, 35.89588170142396],
+                      [128.61265182495117, 35.89560358073926],
+                    ]
+            speed:
+              type: array
+              example: [22, 24]
+            time:
+              type: array
+              example: [1, 5]
+            distance:
+              type: array
+              example: [0.1, 1]
+            event:
+              type: string
+              example: R
+            altitude:
+              type: array
+              example: [11, 12]
+            totalTime:
+              type: integer
+              example: 6
 
     GPSdata:
       properties:
