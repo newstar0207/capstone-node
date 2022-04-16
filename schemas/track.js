@@ -53,7 +53,7 @@ const trackSchema = new Schema({
   },
   checkPoint: {
     // 체크포인트
-    type: [Array],
+    type: [Number],
     required: true,
   },
   gps: {
