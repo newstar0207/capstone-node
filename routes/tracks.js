@@ -79,7 +79,7 @@ const calCheckPoints = ({ gps, totalDistance, event }) => {
       }
     }
   }
-
+  console.log(checkPoints);
   return checkPoints;
 };
 
