@@ -1,17 +1,8 @@
 class TrackInfo {
   constructor(
-    {
-      trackName,
-      totalDistance,
-      name,
-      userId,
-      description,
-      event,
-      gps,
-      altitude,
-      checkPoint,
-    },
-    avgSlope
+    { trackName, totalDistance, name, userId, description, event, gps, altitude },
+    avgSlope,
+    checkPoints
   ) {
     this.trackName = trackName;
     this.totalDistance = totalDistance;
@@ -20,7 +11,7 @@ class TrackInfo {
     this.event = event;
     this.gps = { coordinates: gps };
     this.altitude = altitude;
-    this.checkPoint = checkPoint;
+    this.checkPoint = checkPoints;
     this.start_latlng = { coordinates: gps[0] };
     this.end_latlng = { coordinates: gps[gps.length - 1] };
     this.avgSlope = avgSlope;

@@ -5,6 +5,7 @@ const connect = () => {
     mongoose.set("debug", true);
   }
 
+  // console.log(process.env.MONGO_CONFIG, "@@@@@@@@@@@@@@@@@@@@@@@2222");
   mongoose.connect(
     // process.env.MONGO_URL,
     process.env.MONGO_CONFIG,

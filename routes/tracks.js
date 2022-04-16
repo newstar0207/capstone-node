@@ -3,6 +3,8 @@ const { body, validationResult, query, param } = require("express-validator");
 const Track = require("../schemas/track");
 const ObjectId = require("mongoose").Types.ObjectId;
 const TrackInfo = require("../models/TrackInfo");
+const EventType = require("../types/EventType");
+``;
 
 const router = express.Router();
 
@@ -24,7 +26,7 @@ const calculateSlope = ({ gps, altitude }) => {
     const Radius = 6371e3; // metres
 
     // 좌표를 라디안 단위로 변환
-    const φ1 = (gps[i - 1][1] * Math.PI) / 180; // φ(위도), λ(경도) in radians
+    const φ1 = (gps[i - 1][1] * Math.PI) / 180; // φ(위도), λ(경도) in radians/ Δ(델타)
     const φ2 = (item[1] * Math.PI) / 180;
     const Δφ = ((item[1] - gps[i - 1][1]) * Math.PI) / 180;
     const Δλ = ((item[0] - gps[i - 1][0]) * Math.PI) / 180;
@@ -40,6 +42,45 @@ const calculateSlope = ({ gps, altitude }) => {
       (distance.reduce((sum, item) => sum + item, 0) / distance.length) * 10
     ) / 10
   );
+};
+
+const calCheckPoints = ({ gps, totalDistance, event }) => {
+  /*
+    - 자전거 1 ~ 20km : 3개, 21 ~ 60 : 5개, ~~~ : 10개
+    - 달리기 1 ~ 3km : 3개, 4 ~ 10 : 5개, ~~~: 10개
+   */
+  let checkPoints = [];
+  if (event === EventType.BIKE) {
+    if (totalDistance <= 20000) {
+      for (let i = 1; i <= 3; i++) {
+        checkPoints.push(Math.floor(gps.length / 4) * i);
+      }
+    } else if (totalDistance <= 60000) {
+      for (let i = 1; i <= 5; i++) {
+        checkPoints.push(Math.floor(gps.length / 6) * i);
+      }
+    } else {
+      for (let i = 1; i <= 10; i++) {
+        checkPoints.push(Math.floor(gps.length / 11) * i);
+      }
+    }
+  } else {
+    if (totalDistance <= 3000) {
+      for (let i = 1; i <= 3; i++) {
+        checkPoints.push(Math.floor(gps.length / 4) * i);
+      }
+    } else if (totalDistance <= 10000) {
+      for (let i = 1; i <= 5; i++) {
+        checkPoints.push(Math.floor(gps.length / 6) * i);
+      }
+    } else {
+      for (let i = 1; i <= 10; i++) {
+        checkPoints.push(Math.floor(gps.length / 11) * i);
+      }
+    }
+  }
+
+  return checkPoints;
 };
 
 /**
@@ -99,9 +140,10 @@ router.post(
     }
 
     const avgSlope = calculateSlope(req.body);
-    console.log(avgSlope);
+    const checkPoints =
+      req.body.totalDistance >= 1000 ? calCheckPoints(req.body) : [];
 
-    const storeTrack = new TrackInfo(req.body, avgSlope);
+    const storeTrack = new TrackInfo(req.body, avgSlope, checkPoints);
 
     // return res.json(storeTrack);
 
