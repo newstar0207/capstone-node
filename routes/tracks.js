@@ -51,11 +51,11 @@ const calCheckPoints = ({ gps, totalDistance, event }) => {
    */
   let checkPoints = [];
   if (event === EventType.BIKE) {
-    if (totalDistance <= 20000) {
+    if (totalDistance <= 20) {
       for (let i = 1; i <= 3; i++) {
         checkPoints.push(Math.floor(gps.length / 4) * i);
       }
-    } else if (totalDistance <= 60000) {
+    } else if (totalDistance <= 60) {
       for (let i = 1; i <= 5; i++) {
         checkPoints.push(Math.floor(gps.length / 6) * i);
       }
@@ -65,11 +65,11 @@ const calCheckPoints = ({ gps, totalDistance, event }) => {
       }
     }
   } else {
-    if (totalDistance <= 3000) {
+    if (totalDistance <= 3) {
       for (let i = 1; i <= 3; i++) {
         checkPoints.push(Math.floor(gps.length / 4) * i);
       }
-    } else if (totalDistance <= 10000) {
+    } else if (totalDistance <= 10) {
       for (let i = 1; i <= 5; i++) {
         checkPoints.push(Math.floor(gps.length / 6) * i);
       }
@@ -140,8 +140,7 @@ router.post(
     }
 
     const avgSlope = calculateSlope(req.body);
-    const checkPoints =
-      req.body.totalDistance >= 1000 ? calCheckPoints(req.body) : [];
+    const checkPoints = req.body.totalDistance > 1 ? calCheckPoints(req.body) : [];
 
     const storeTrack = new TrackInfo(req.body, avgSlope, checkPoints);
 
@@ -169,13 +168,13 @@ router.post(
               },
             },
             {
-              // 총 거리 비교 distance - 100 < totalDistance < distance + 100
+              // 총 거리 비교 distance - 0.1 < totalDistance < distance + 0.1
               $and: [
                 {
-                  totalDistance: { $gt: storeTrack.totalDistance - 100 },
+                  totalDistance: { $gt: storeTrack.totalDistance - 0.1 },
                 },
                 {
-                  totalDistance: { $lt: storeTrack.totalDistance + 100 },
+                  totalDistance: { $lt: storeTrack.totalDistance + 0.1 },
                 },
               ],
             },
