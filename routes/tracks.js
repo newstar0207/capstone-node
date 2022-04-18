@@ -21,7 +21,7 @@ const calculateSlope = ({ gps, altitude }) => {
     2. gps 좌표사이사이의 거리를 sum으로 계산하여 더해가야함.
     3. avgslope에 저장함
   */
-  const distance = gps.map((item, i) => {
+  const slopes = gps.map((item, i) => {
     if (!i) return 0;
     const Radius = 6371e3; // metres
 
@@ -34,13 +34,16 @@ const calculateSlope = ({ gps, altitude }) => {
       Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
       Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const d = Radius * c; // in metres
-    return ((altitude[i] - altitude[i - 1]) / d) * 100;
+
+    let d = Radius * c; // in metres
+    let slope = 0;
+    d = d < 1 ? (slope = 0) : (slope = ((altitude[i] - altitude[i - 1]) / d) * 100);
+
+    return slope;
   });
   return (
-    Math.floor(
-      (distance.reduce((sum, item) => sum + item, 0) / distance.length) * 10
-    ) / 10
+    Math.floor((slopes.reduce((sum, item) => sum + item, 0) / slopes.length) * 10) /
+    10
   );
 };
 
@@ -370,7 +373,10 @@ router.get(
     try {
       const track = await Track.findById(req.params.trackId);
       if (track) {
-        res.status(200).json(track);
+        // console.log(track.altitude);
+        const maxAltitude = Math.max(...track.altitude);
+        const minAltitude = Math.min(...track.altitude);
+        res.status(200).json({ track, maxAltitude, minAltitude });
       } else {
         res.status(404).json({ message: "track이 존재하지 않습니다." });
       }

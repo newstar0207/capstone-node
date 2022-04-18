@@ -370,7 +370,7 @@ router.get(
       ]);
       if (!InterSectTrack.length)
         return res.status(200).json({ track: null, gpsData: gpsData });
-      console.log(InterSectTrack);
+      // console.log(InterSectTrack);
 
       return res.status(200).json({ track: InterSectTrack, gpsData: gpsData });
     } catch (err) {
