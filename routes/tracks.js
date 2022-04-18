@@ -374,9 +374,12 @@ router.get(
       const track = await Track.findById(req.params.trackId);
       if (track) {
         // console.log(track.altitude);
-        const maxAltitude = Math.max(...track.altitude);
-        const minAltitude = Math.min(...track.altitude);
-        res.status(200).json({ track, maxAltitude, minAltitude });
+        // const maxAltitude = Math.max(...track.altitude);
+        // const minAltitude = Math.min(...track.altitude);
+        // track.maxAltitude = maxAltitude;
+        // track.minAltitude = minAltitude;
+        console.log(track);
+        res.status(200).json(track);
       } else {
         res.status(404).json({ message: "track이 존재하지 않습니다." });
       }
