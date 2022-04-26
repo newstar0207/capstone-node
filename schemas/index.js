@@ -5,10 +5,9 @@ const connect = () => {
     mongoose.set("debug", true);
   }
 
-  // console.log(process.env.MONGO_CONFIG, "@@@@@@@@@@@@@@@@@@@@@@@2222");
   mongoose.connect(
-    // process.env.MONGO_URL,
-    process.env.MONGO_CONFIG,
+    process.env.MONGO_URL,
+    // 'mongodb://mongo:27017/mongo',
     {
       dbName: "gps",
       useNewUrlParser: true,

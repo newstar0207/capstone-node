@@ -2,10 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const morgan = require("morgan");
-const cookieParser = require("cookie-parser");
-const nunjucks = require("nunjucks");
 const dotenv = require("dotenv");
-const { swaggerUi, specs } = require("./swagger/Swagger");
+// const cookieParser = require("cookie-parser");
+
+if (process.env.NODE_ENV !== 'production') {
+  const { swaggerUi, specs } = require("./swagger/Swagger");
+}
 // const { scheduleJob } = require("./schedule"); // schedule (트랙 사용자 없으면 삭제하기 위함)
 
 dotenv.config();
@@ -18,12 +20,8 @@ const app = express();
 
 app.use(cors());
 
-app.set("port", process.env.PORT || 3002);
-app.set("view engine", "html");
-nunjucks.configure("views", {
-  express: app,
-  watch: true,
-});
+app.set("port", process.env.PORT || 3000);
+
 connect();
 
 app.use(morgan("dev"));
@@ -31,9 +29,12 @@ app.use(express.static(path.join(__dirname, "public")));
 // body-parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser(process.env.COOKIE_SECRET));
+// app.use(cookieParser(process.env.COOKIE_SECRET));
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
+if (process.env.NODE_ENV !== 'production') {
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
+}
+
 app.use("/api/tracks", trackRouter);
 app.use("/api/gpsdata", gpsRouter);
 // scheduleJob();
@@ -50,10 +51,6 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  // res.locals.message = err.message;
-  // res.locals.error = process.env.NODE_ENV !== "production" ? err : {};
-  // res.status(err.status || 500);
-  // res.render("error");
   console.log(err);
   res.status(503).json({ message: "mongodb error" });
 });
