@@ -1,2 +1,9 @@
 mongodb
 node_modules
+.git*
+*.md 
+IREADME*.md
+**/*.class 
+.cache
+.dockerfile
+Dockerfile
