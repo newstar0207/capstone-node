@@ -1,19 +1,32 @@
 name: CI/CD Docker
-on:
-  push:
+
+# 워크플로를 자동으로 트리거 하기 위함
+on: 
+  push: 
     branches: [ master ]
 env: 
   DOCKER_IMAGE: ghcr.io/${{ github.actor }}/node
   VERSION: ${{ github.sha }}
   NAME: node_cicd
 jobs:
+  # job_id 
   build:
+    # github에 표시되는 작업의 이름
     name: Build
+    # 어디서 실행할건지
     runs-on: ubuntu-latest 
     steps:
+      - name: Generate Environment Variables File 
+        # | => 줄바꿈 포함
+        run: |  
+          echo "MONGO_URL=$MONGO_URL" >> .env
+          echo "NODE_ENV=$NODE_ENV" >> .env
+      # github에 표시할 단계의 이름
       - name: Check out source code
+        # 실행할 작업을 선택
         uses: actions/checkout@v2
       - name: Set up docker buildx
+        # 단계의 고유 식별자 ( steps_id )
         id: buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to ghcr
@@ -29,7 +42,9 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ env.DOCKER_IMAGE }}:latest
+  # job_id
   deploy:
+    # 이 작업을 실행하기 전에 성공적으로 완료해야 하는 작업
     needs: build
     name: Deploy
     runs-on: [ self-hosted, label-node ]
