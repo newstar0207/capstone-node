@@ -19,8 +19,10 @@ jobs:
       - name: Generate Environment Variables File 
         # | => 줄바꿈 포함
         run: |  
-          echo "MONGO_URL=$MONGO_URL" >> .env
-          echo "NODE_ENV=$NODE_ENV" >> .env
+          touch .env
+          echo MONGO_URL=${{ secrets.MONGO_URL }} >> .env
+          echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
+          cat .env
       # github에 표시할 단계의 이름
       - name: Check out source code
         # 실행할 작업을 선택
