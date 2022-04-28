@@ -20,13 +20,13 @@ jobs:
       - name: Check out source code
         # 실행할 작업을 선택
         uses: actions/checkout@v2
-      - name: Generate Environment Variables File 
-        # | => 줄바꿈 포함
-        run: |  
-          touch .env
-          echo MONGO_URL=${{ secrets.MONGO_URL }} >> .env
-          echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
-          cat .env
+      # - name: Generate Environment Variables File 
+      #   # | => 줄바꿈 포함
+      #   run: |  
+      #     touch .env
+      #     echo MONGO_URL=${{ secrets.MONGO_URL }} >> .env
+      #     echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
+      #     cat .env
       - name: Set up docker buildx
         # 단계의 고유 식별자 ( steps_id )
         id: buildx
