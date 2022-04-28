@@ -16,6 +16,10 @@ jobs:
     # 어디서 실행할건지
     runs-on: ubuntu-latest 
     steps:
+      # github에 표시할 단계의 이름
+      - name: Check out source code
+        # 실행할 작업을 선택
+        uses: actions/checkout@v2
       - name: Generate Environment Variables File 
         # | => 줄바꿈 포함
         run: |  
@@ -23,10 +27,6 @@ jobs:
           echo MONGO_URL=${{ secrets.MONGO_URL }} >> .env
           echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
           cat .env
-      # github에 표시할 단계의 이름
-      - name: Check out source code
-        # 실행할 작업을 선택
-        uses: actions/checkout@v2
       - name: Set up docker buildx
         # 단계의 고유 식별자 ( steps_id )
         id: buildx
