@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package.json .
 RUN npm install
 COPY . .
-RUN node ./env-script.sh
+RUN ./env-script.sh
 ENV HOST 0.0.0.0 
 # 모든 IP를 개방
 EXPOSE 3000
