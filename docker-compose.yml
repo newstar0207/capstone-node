@@ -1,0 +1,29 @@
+version: '3' 
+services:
+  # node:
+  #   build:
+  #     context: .
+  #     dockerfile: ./Dockerfile
+  #   container_name: node
+  #   # restart: always
+  #   ports: 
+  #     - "3000:3000"  
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - node-mongo
+  mongodb: 
+    container_name: mongo
+    image: mongo
+    volumes:
+      - ./mongodb/data:/data/db 
+    ports:  
+      - 27017:27017
+    environment: 
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_USER
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_USER_PWD
+    networks:
+      - node-mongo
+networks:
+  node-mongo:
+    driver: bridge

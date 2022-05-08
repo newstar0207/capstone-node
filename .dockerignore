@@ -7,3 +7,4 @@ IREADME*.md
 .cache
 .dockerfile
 Dockerfile
+docker-compose
