@@ -3,11 +3,7 @@ const cors = require("cors");
 const path = require("path");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
-// const cookieParser = require("cookie-parser");
-
-if (process.env.NODE_ENV !== 'production') {
-  const { swaggerUi, specs } = require("./swagger/Swagger");
-}
+const { swaggerUi, specs } = require("./swagger/Swagger");
 // const { scheduleJob } = require("./schedule"); // schedule (트랙 사용자 없으면 삭제하기 위함)
 
 dotenv.config();
@@ -15,6 +11,7 @@ dotenv.config();
 const connect = require("./schemas");
 const trackRouter = require("./routes/tracks");
 const gpsRouter = require("./routes/gpsDatas");
+const userRouter = require("./routes/users");
 
 const app = express();
 
@@ -37,6 +34,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 app.use("/api/tracks", trackRouter);
 app.use("/api/gpsdata", gpsRouter);
+app.use("/api/users", userRouter);
 // scheduleJob();
 
 app.get("/", function (req, res) {

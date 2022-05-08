@@ -5,9 +5,18 @@ const connect = () => {
     mongoose.set("debug", true);
   }
 
+  
+  let URL = `mongodb://${ process.env.MONGO_USER }:${ process.env.MONGO_USER_PWD }@127.0.0.1:27017/${ process.env.MONGO_DB}?authSource=admin&authMechanism=SCRAM-SHA-1`
+  // let URL = `mongodb://${ process.env.MONGO_USER }:${ process.env.MONGO_USER_PWD }@mongo:27017/${ process.env.MONGO_DB}?authSource=admin&authMechanism=SCRAM-SHA-1`;
+  // let URL = `mongodb://${ process.env.MONGO_USER }:${ process.env.MONGO_USER_PWD }@mongo:27017/gps`;
+  // console.log(URL); 
+
+  if(process.env.NODE_ENV === 'production') {
+    URL = process.env.MONGO_URL;
+  } 
+
   mongoose.connect(
-    process.env.MONGO_URL,
-    // 'mongodb://mongo:27017/mongo',
+    URL,
     {
       dbName: "gps",
       useNewUrlParser: true,

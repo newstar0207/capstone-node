@@ -253,6 +253,16 @@ components:
         _id:
           type: string
           example: 621334fc7d7f986fa9bd3425
+    getUserTrack200:
+      properties:
+        count: 
+          type: integer
+          example: 0
+    getUserTrack404:
+      properties:
+        message:
+          type: string
+          example: 트랙이 존재하지 않습니다.
     GPSdataRank:
       properties:
         rank:

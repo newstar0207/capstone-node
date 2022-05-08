@@ -4,7 +4,7 @@ const Track = require("../schemas/track");
 const ObjectId = require("mongoose").Types.ObjectId;
 const TrackInfo = require("../models/TrackInfo");
 const EventType = require("../types/EventType");
-``;
+
 
 const router = express.Router();
 
@@ -426,5 +426,6 @@ router.get("/", async (req, res, next) => {
     next(err);
   }
 });
+
 
 module.exports = router;
