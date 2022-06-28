@@ -54,3 +54,4 @@ jobs:
         run: |
           docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
           docker run -d -p 3000:3000 --name node_cicd --env-file /home/ubuntu/.env --restart always ${{ env.DOCKER_IMAGE }}:latest
+          sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3000
